@@ -9,13 +9,16 @@ namespace PracticeGraphQL2.DataAccess.Entity
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int TrainId { get; set; }
         [Required]
-        public string TrainName { get; set; }
+        public string? TrainName { get; set; }
         [Required]
-        public string TrainRoute { get; set; }
+        public int TrainNumber { get; set; }
         [Required]
-        public string TrainStanciyaOtpravlenya { get; set; }
+        public string? TrainRoute { get; set; }
         [Required]
-        public string TrainStanciyaPribitiya { get; set; }
-        public ICollection<Passenger> Passengers { get; set; }
+        public string? TrainStanciyaOtpravlenya { get; set; }
+        [Required]
+        public string? TrainStanciyaPribitiya { get; set; }
+        public ICollection<Ticket>? Tickets { get; set; }
+        public ICollection<Carriage> Carriages { get; set; }
     }
 }

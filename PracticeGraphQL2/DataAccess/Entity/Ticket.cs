@@ -11,13 +11,16 @@ namespace PracticeGraphQL2.DataAccess.Entity
         [Required]
         public decimal Price { get; set; }
         [Required]
-        public int NomerVagona { get; set; }
-        [Required]
-        public int NomerMesta { get; set; }
+        public bool IsSold { get; set; }
         [Required]
         public DateTime DataProdaji { get; set; }
         [Required]
-        public string SellerName { get; set; }
-        public ICollection<Passenger> Passengers { get; set; }
+        public string? SellerName { get; set; }
+        public int TrainId { get; set; }
+        public Train? Train { get; set; }
+        public int PassengerId { get; set; }
+        public Passenger? Passenger { get; set; }
+        public int SeatId { get; set; }
+        public Seat?Seat { get; set; }
     }
 }

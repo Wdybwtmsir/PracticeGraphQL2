@@ -21,9 +21,7 @@ namespace PracticeGraphQL2.DataAccess.Entity
         [Required]
         public int Age { get; set; }
         public string? Address { get; set; }
-        public int TicketId { get; set; }
-        public Ticket Ticket { get; set; }
-        public int TrainId { get; set; }
-        public Train Train { get; set; }
+        public ICollection<Ticket>? Tickets { get; set; }
+        
     }
 }

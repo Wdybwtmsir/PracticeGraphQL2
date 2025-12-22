@@ -1,44 +1,96 @@
 ﻿using Faker;
 using PracticeGraphQL2.DataAccess.Entity;
-using System.ComponentModel.DataAnnotations;
+using System;
+using System.Linq;
 
 namespace PracticeGraphQL2.DataAccess.Data
 {
     public static class DataSeeder
+    {
+        public static void SeedData(SampleAppDbContext db)
         {
-            public static void SeedData(SampleAppDbContext db)
+            var rand = new Random();
+
+            // Сидим поезда и вагоны (Carriage)
+            if (!db.Train.Any())
             {
-                if (!db.Passenger.Any())
+                for (int i = 1; i <= 3; i++)
                 {
-                    for (int = 0; int < 5; int++)
+                    var train = new Train
                     {
-                        var pas = new Passenger
+                        TrainName = $"Train {i}",
+                        TrainNumber = rand.Next(1000, 9999).ToString()
+                    };
+                    db.Train.Add(train);
+                    db.SaveChanges();
+
+                    // Создаем 2 вагона на каждый поезд
+                    for (int c = 1; c <= 2; c++)
+                    {
+                        var carriage = new Carriage
                         {
-                            FirstName = Name.First(),
-                            LastName = Name.Last(),
-                            SurName = Name.Suffix(),
-                            Email = Faker.Internet.Email(),
-                            Phone = Faker.Phone.Number(),
-                            Age = new Random().Next(15, 70),
-                            Address = Faker.Address.StreetAddress(),
-                            Ticket = tick
+                            TrainId = train.Id,
+                            Number = c,
+                            Type = c % 2 == 0 ? "Coupe" : "Platzkart"
                         };
-                        db.Passenger.Add(pas);
-                        for (int j = 0; j < 5; j++)
+                        db.Carriage.Add(carriage);
+                        db.SaveChanges();
+
+                        // Создаем места для каждого вагона
+                        for (int s = 1; s <= 5; s++)
                         {
-                            var tick = new Ticket
+                            var seat = new Seat
                             {
-                                Price = new Random().Next(200,500),
-                                NomerVagona = new Random().Next(0,100),
-                                NomerMesta = new Random().Next(0,100),
-                                DataProdaji = Faker. 
+                                CarriageId = carriage.Id,
+                                Number = s,
+                                SeatType = "Standard"
                             };
-                        db.Ticket.Add(tick);
+                            db.Seat.Add(seat);
+                        }
+                        db.SaveChanges();
                     }
+                }
+            }
+
+            // Сидим пассажиров
+            if (!db.Passenger.Any())
+            {
+                for (int i = 0; i < 5; i++)
+                {
+                    var passenger = new Passenger
+                    {
+                        FirstName = Name.First(),
+                        LastName = Name.Last(),
+                        SurName = Name.Suffix(),
+                        Email = Internet.Email(),
+                        Phone = Phone.Number(),
+                        Age = rand.Next(15, 70),
+                        Address = Address.StreetAddress()
+                    };
+                    db.Passenger.Add(passenger);
+                }
+                db.SaveChanges();
+            }
+
+            // Билеты с местами и пассажирами
+            if (!db.Ticket.Any())
+            {
+                var passengers = db.Passenger.Take(5).ToList();
+                var seats = db.Seat.Take(5).ToList();
+
+                for (int i = 0; i < Math.Min(passengers.Count, seats.Count); i++)
+                {
+                    var ticket = new Ticket
+                    {
+                        PassengerId = passengers[i].Id,
+                        SeatId = seats[i].Id,
+                        Price = rand.Next(500, 2000),
+                        PurchaseDate = DateTime.Now.AddDays(-rand.Next(1, 30))
+                    };
+                    db.Ticket.Add(ticket);
                 }
                 db.SaveChanges();
             }
         }
     }
 }
-

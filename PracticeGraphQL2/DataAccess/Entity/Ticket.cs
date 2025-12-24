@@ -20,7 +20,5 @@ namespace PracticeGraphQL2.DataAccess.Entity
         public Train? Train { get; set; }
         public int PassengerId { get; set; }
         public Passenger? Passenger { get; set; }
-        public int SeatId { get; set; }
-        public Seat?Seat { get; set; }
     }
 }

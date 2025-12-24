@@ -19,6 +19,6 @@ namespace PracticeGraphQL2.DataAccess.Entity
         [Required]
         public string? TrainStanciyaPribitiya { get; set; }
         public ICollection<Ticket>? Tickets { get; set; }
-        public ICollection<Carriage> Carriages { get; set; }
+        public ICollection<Carriage>? Carriages { get; set; }
     }
 }

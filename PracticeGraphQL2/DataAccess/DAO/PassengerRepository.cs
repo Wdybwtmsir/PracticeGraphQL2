@@ -1,51 +1,22 @@
-﻿using PracticeGraphQL2.DataAccess.Entity;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using PracticeGraphQL2.DataAccess.Entity;
+
 public class PassengerRepository
 {
-    private readonly SampleAppDbContext _context;
-    public PassengerRepository(SampleAppDbContext context)
+    private readonly DbContext _context;
+
+    public PassengerRepository(DbContext context)
     {
         _context = context;
     }
-    public List<Passenger> GetPassengersByTrain(int trainId)
+
+    public Passenger GetById(int id)
     {
-        return _context.Ticket
-            .Where(t => t.TrainId == trainId && t.IsSold)
-            .Include(t => t.Passenger)
-            .Select(t => t.Passenger!)
-            .Distinct()
-            .ToList();
-    }
-    public List<Ticket> GetAllMovementsByPassenger(int passengerId)
-    {
-        return _context.Ticket
-            .Where(t => t.PassengerId == passengerId && t.IsSold)
-            .Include(t => t.Train)
-            .Include(t => t.Seat)
-            .ToList();
+        return _context.Set<Passenger>()
+            .FirstOrDefault(p => p.PassengerId == id);
     }
 
-  
-    public Passenger? GetPassengerBySeatOnTrain(int trainId, int seatNumber)
+    public List<Passenger> GetAll()
     {
-        var ticket = _context.Ticket
-            .Include(t => t.Passenger)
-            .Include(t => t.Seat)
-            .FirstOrDefault(t => t.TrainId == trainId
-                              && t.Seat!.Number == seatNumber
-                              && t.IsSold);
-        return ticket?.Passenger;
+        return _context.Set<Passenger>().ToList();
     }
-
-    public List<Passenger> GetPassengersByCarriage(int trainId, int carriageNumber)
-    {
-        return _context.Ticket
-            .Where(t => t.TrainId == trainId
-                     && t.IsSold
-                     && t.Seat!.Carriage!.Number == carriageNumber)
-            .Include(t => t.Passenger)
-            .Select(t => t.Passenger!)
-            .Distinct()
-            .ToList();
-    }
-}

@@ -11,8 +11,6 @@ namespace PracticeGraphQL2.DataAccess.Entity
         [Required]
         public int Number { get; set; }
         [Required]
-        public decimal Price { get; set; }
-        [Required]
         public bool IsBooked { get; set; }
         public int CarriageId { get; set; }
         public Carriage? Carriage { get; set; }

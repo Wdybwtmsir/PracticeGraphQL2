@@ -1,28 +1,38 @@
-﻿using PracticeGraphQL2.DataAccess.Entity;
+﻿using Microsoft.EntityFrameworkCore;
+using PracticeGraphQL2.DataAccess.Entity;
 
 public class TrainRepository
 {
-    private readonly SampleAppDbContext _context;
-    public TrainRepository(SampleAppDbContext context)
+    private readonly DbContext _context;
+
+    public TrainRepository(DbContext context)
     {
         _context = context;
     }
 
-    public List<Train> GetAllTrains()
+    public Train GetById(int trainId)
     {
-        return _context.Train.ToList();
+        return _context.Set<Train>()
+            .FirstOrDefault(t => t.Id == trainId);
     }
 
-    public decimal GetTotalSoldTicketsCostOnTrain(int trainId)
+    public List<Train> GetAll()
     {
-        return _context.Ticket
-            .Where(t => t.TrainId == trainId && t.IsSold)
-            .Sum(t => t.Price);
+        return _context.Set<Train>()
+            .ToList();
     }
-    public decimal GetTotalUnsoldTicketsCostOnTrain(int trainId)
+
+    public List<Seat> GetAvailableSeats(int trainId)
     {
-        return _context.Ticket
-            .Where(t => t.TrainId == trainId && !t.IsSold)
-            .Sum(t => t.Price);
+        
+        var occupiedSeatIds = _context.Set<Ticket>()
+            .Where(t => t.TrainId == trainId)
+            .Select(t => t.SeatId)
+            .ToList();
+
+        
+        return _context.Set<Seat>()
+            .Where(s => s.TrainId == trainId && !occupiedSeatIds.Contains(s.Id))
+            .ToList();
     }
 }

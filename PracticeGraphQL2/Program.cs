@@ -16,6 +16,8 @@ builder.Services.AddScoped<PassengerRepository, PassengerRepository>();
 builder.Services.AddScoped<SeatRepository, SeatRepository>();
 builder.Services.AddScoped<TicketRepository, TicketRepository>();
 builder.Services.AddScoped<TrainRepository, TrainRepository>();
+builder.Services.AddScoped<CarriageRepository, CarriageRepository>();
+
 var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
@@ -36,7 +38,7 @@ using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var db = services.GetRequiredService<SampleAppDbContext>();
-  //  DataSeeder.SeedData(db);
+    DataSeeder.SeedData(db);
 }
 app.MapGraphQL("/graphql");
 app.Run();

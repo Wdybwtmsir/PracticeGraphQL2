@@ -14,11 +14,11 @@ namespace PracticeGraphQL2.DataAccess.Entity
         public bool IsSold { get; set; }
         [Required]
         public DateTime DataProdaji { get; set; }
-        [Required]
+        
         public string? SellerName { get; set; }
         public int TrainId { get; set; }
         public Train? Train { get; set; }
-        public int PassengerId { get; set; }
+        public int? PassengerId { get; set; }
         public Passenger? Passenger { get; set; }
     }
 }

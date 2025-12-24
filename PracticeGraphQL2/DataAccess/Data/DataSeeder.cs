@@ -1,118 +1,134 @@
-﻿using Faker;
-using PracticeGraphQL2.DataAccess.Entity;
+﻿using PracticeGraphQL2.DataAccess.Entity;
 using System;
 using System.Linq;
 
 namespace PracticeGraphQL2.DataAccess.Data
 {
-
     public static class DataSeeder
     {
-        //public static void SeedData(SampleAppDbContext db)
-        //{
-        //    var rand = new Random();
-        //    if (!db.Train.Any())
-        //    {
-        //        for (int i = 1; i <= 3; i++)
-        //        {
-        //            var train = new Train
-        //            {
-        //                TrainName = $"Train {i}",
-        //                TrainNumber = rand.Next(1000, 9999),
-        //                TrainRoute = $"Route {i}",
-        //                TrainStanciyaOtpravlenya = $"Station {i}A",
-        //                TrainStanciyaPribitiya = $"Station {i}B",
-        //                Carriages = new List<Carriage>()
-        //            };
-        //            db.Train.Add(train);
-        //        }
-        //        db.SaveChanges();
-        //    }
-        //    if (!db.Carriage.Any())
-        //    {
-        //        var trains = db.Train.ToList();
-        //        foreach (var train in trains)
-        //        {
-        //            for (int n = 1; n <= 5; n++)
-        //            {
-        //                var carriage = new Carriage
-        //                {
-        //                    Number = n,
-        //                    TrainId = train.TrainId
-        //                };
-        //                db.Carriage.Add(carriage);
-        //            }
-        //        }
-        //        db.SaveChanges();
-        //    }
-        //    if (!db.Seat.Any())
-        //    {
-        //        var carriages = db.Carriage.ToList();
-        //        foreach (var carriage in carriages)
-        //        {
-        //            for (int s = 1; s <= 20; s++)
-        //            {
-        //                var seat = new Seat
-        //                {
-        //                    Number = s,
-        //                    Price = 100 + 10 * carriage.Number,
-        //                    IsBooked = false,
-        //                    CarriageId = carriage.CarriageId
-        //                };
-        //                db.Seat.Add(seat);
-        //            }
-        //        }
-        //        db.SaveChanges();
-        //    }
-        //    if (!db.Passenger.Any())
-        //    {
-        //        for (int p = 1; p <= 10; p++)
-        //        {
-        //            var passenger = new Passenger
-        //            {
-        //                FirstName = $"FirstName{p}",
-        //                LastName = $"LastName{p}",
-        //                SurName = $"SurName{p}",
-        //                Email = $"passenger{p}@example.com",
-        //                Phone = $"+1000000{p:D4}",
-        //                Age = rand.Next(18, 80),
-        //                Address = $"Address {p}"
-        //            };
-        //            db.Passenger.Add(passenger);
-        //        }
-        //        db.SaveChanges();
-        //    }
-        //    if (!db.Ticket.Any())
-        //    {
-        //        var passengers = db.Passenger.ToList();
-        //        var trains = db.Train.ToList();
-        //        var seats = db.Seat.ToList();
+        public static void SeedData(SampleAppDbContext db)
+        {
+            var rand = new Random();
 
-        //        for (int t = 0; t < 10; t++)
-        //        {
-        //            var passenger = passengers[rand.Next(passengers.Count)];
-        //            var train = trains[rand.Next(trains.Count)];
-        //            var seatsInTrain = seats.Where(s => s.Carriage != null && s.Carriage.TrainId == train.TrainId && s.IsBooked == false).ToList();
-        //            if (seatsInTrain.Count == 0) break;
+            Console.WriteLine("Начало заполнения базы данных...");
+            if (!db.Train.Any())
+            {
+                Console.WriteLine("Создание поездов...");
+                for (int i = 1; i <= 3; i++)
+                {
+                    db.Train.Add(new Train
+                    {
+                        TrainName = $"Поезд {i}",
+                        TrainNumber = 1000 + i,
+                        TrainRoute = $"Маршрут {i}",
+                        TrainStanciyaOtpravlenya = $"Станция А{i}",
+                        TrainStanciyaPribitiya = $"Станция Б{i}"
+                    });
+                }
+                db.SaveChanges();
+            }
+            if (!db.Carriage.Any())
+            {
+                Console.WriteLine("Создание вагонов...");
+                var trains = db.Train.ToList();
+                foreach (var train in trains)
+                {
+                    for (int i = 1; i <= 4; i++) 
+                    {
+                        db.Carriage.Add(new Carriage
+                        {
+                            Number = i,
+                            TrainId = train.TrainId
+                        });
+                    }
+                }
+                db.SaveChanges();
+            }
+            if (!db.Seat.Any())
+            {
+                Console.WriteLine("Создание мест...");
+                var carriages = db.Carriage.ToList();
+                foreach (var carriage in carriages)
+                {
+                    for (int i = 1; i <= 20; i++) 
+                    {
+                        db.Seat.Add(new Seat
+                        {
+                            Number = i,
+                            IsBooked = false,
+                            CarriageId = carriage.CarriageId
+                        });
+                    }
+                }
+                db.SaveChanges();
+            }
+            if (!db.Passenger.Any())
+            {
+                Console.WriteLine("Создание пассажиров...");
+                for (int i = 1; i <= 10; i++)
+                {
+                    db.Passenger.Add(new Passenger
+                    {
+                        FirstName = $"Имя{i}",
+                        LastName = $"Фамилия{i}",
+                        SurName = $"Отчество{i}",
+                        Email = $"passenger{i}@test.com",
+                        Phone = $"+7{rand.Next(900, 999)}{rand.Next(1000000, 9999999)}",
+                        Age = rand.Next(18, 65),
+                        Address = $"Адрес {i}"
+                    });
+                }
+                db.SaveChanges();
+            }
+            if (!db.Ticket.Any())
+            {
+                Console.WriteLine("Создание билетов...");
+                var passengers = db.Passenger.ToList();
+                var trains = db.Train.ToList();
+                var sellers = new[] { "Иванов", "Петров", "Сидоров" };
+                foreach (var train in trains)
+                {
+                    var trainCarriages = db.Carriage
+                        .Where(c => c.TrainId == train.TrainId)
+                        .ToList();
+                    var trainSeats = db.Seat
+                        .Where(s => trainCarriages.Select(c => c.CarriageId).Contains(s.CarriageId))
+                        .Where(s => !s.IsBooked)
+                        .ToList();
+                    for (int i = 0; i < 5 && i < trainSeats.Count; i++)
+                    {
+                        var passenger = passengers[rand.Next(passengers.Count)];
+                        var seat = trainSeats[i];
+                        seat.IsBooked = true;
 
-        //            var seat = seatsInTrain[rand.Next(seatsInTrain.Count)];
-        //            seat.IsBooked = true;
+                        db.Ticket.Add(new Ticket
+                        {
+                            Price = rand.Next(500, 3000),
+                            IsSold = true,
+                            DataProdaji = DateTime.Now.AddDays(-rand.Next(1, 30)),
+                            SellerName = sellers[rand.Next(sellers.Length)],
+                            TrainId = train.TrainId,
+                            PassengerId = passenger.PassengerId
+                        });
+                    }
+                }
+                db.SaveChanges();
+                for (int i = 0; i < 5; i++)
+                {
+                    var train = trains[rand.Next(trains.Count)];
 
-        //            var ticket = new Ticket
-        //            {
-        //                Price = seat.Price,
-        //                IsSold = true,
-        //                DataProdaji = DateTime.Now,
-        //                SellerName = $"Seller {rand.Next(1, 5)}",
-        //                TrainId = train.TrainId,
-        //                PassengerId = passenger.PassengerId,
-        //                SeatId = seat.SeatId
-        //            };
-
-        //            db.Ticket.Add(ticket);
-        //        }
-        //        db.SaveChanges();
-        //    }
-        //}
+                    db.Ticket.Add(new Ticket
+                    {
+                        Price = rand.Next(500, 3000),
+                        IsSold = false,
+                        DataProdaji = DateTime.Now.AddDays(-rand.Next(1, 10)),
+                        SellerName = null,
+                        TrainId = train.TrainId,
+                        PassengerId = null
+                    });
+                }
+                db.SaveChanges();
+            }
+        }
     }
 }

@@ -7,12 +7,11 @@ namespace PracticeGraphQL2.DataAccess.Data
 {
     public class Mutation
     {
-        public async Task<Ticket> CreateTicketWithId([Service] TicketRepository ticketRepository, [Service] ITopicEventSender eventSender, int id, decimal price,
+        public async Task<Ticket> CreateTicketWithPassengerId([Service] TicketRepository ticketRepository, [Service] ITopicEventSender eventSender, decimal price,
             bool isSold, DateTime dataProdaji, string sellerName, int trainId, int passengerId)
         {
             Ticket tick = new Ticket
-            {
-                TicketId = id,
+            { 
                 Price = price,
                 IsSold = isSold,
                 DataProdaji = dataProdaji,

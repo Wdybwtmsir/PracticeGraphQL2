@@ -15,7 +15,7 @@ namespace PracticeGraphQL2.DataAccess.Entity
         [Required]
         public DateTime DataProdaji { get; set; }
         
-        public string? SellerName { get; set; }
+        public string SellerName { get; set; }
         public int TrainId { get; set; }
         public Train? Train { get; set; }
         public int? PassengerId { get; set; }

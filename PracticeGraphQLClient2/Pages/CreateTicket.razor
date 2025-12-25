@@ -1,0 +1,35 @@
+﻿@page "/CreateTicket"
+@using BlazorBootstrap
+@using PracticeGraphQLClient2.DataAccess
+@using PracticeGraphQLClient2.DataAccess.Model
+
+@inject NavigationManager NavigationManager
+<h3>Создание билета</h3>
+<div class="row">
+    <EditForm Model="@createTicket" OnValidSubmit="@CreateButtonClick">
+        <DataAnnotationsValidator/>
+        <ValidationSummary/>
+        <div class="form-group">
+
+        </div>
+
+    </EditForm>
+</div>
+@code {
+    private CreateTicketModel createTicket =
+        new CreateTicketModel();
+    private async Task CreateButtonClick()
+    {
+        try
+        {
+            string query = "mutation{createTicketWithId(price:" + createTicket.Price + ",isSold:\"" + createTicket.IsSold + "\",dataProdaji:\"" + createTicket.DataProdaji + "\",sellerName:" + createTicket.SellerName + ",trainId:\"" + createTicket.TrainId + ",passengerId:\"" + createTicket.PassengerId + "){price,isSold,dataProdaji,sellerName,trainId,passengerId}}";
+            string graphQLQueryType = "createTicketWithId";
+            var result = await Mutation.ExceuteMutationAsyn<CreateTicket>(graphQLQueryType, query);
+            NavigationManager.NavigateTo($"TicketView");
+        }
+        catch(Exception)
+        {
+            throw;
+        }
+    }
+}

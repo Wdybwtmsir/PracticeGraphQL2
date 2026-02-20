@@ -1,5 +1,135 @@
-﻿<h3>EditTicket</h3>
+﻿@page "/EditTicket/{id:int}"
+@using PracticeGraphQLClient2.DataAccess
+@using PracticeGraphQLClient2.DataAccess.Model
+@inject NavigationManager NavigationManager
+
+<h3>Редактирование билета </h3>
+
+@if (ticket == null)
+{
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Загрузка...</span>
+    </div>
+}
+else
+{
+    <EditForm Model="@ticket" OnValidSubmit="@HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary class="text-danger" />
+
+        <div class="form-group mb-3">
+            <label for="price">Цена:</label>
+            <InputNumber class="form-control" id="price" @bind-Value="ticket.Price" />
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="isSold">Статус продажи:</label>
+            <InputCheckbox class="form-check-input" id="isSold" @bind-Value="ticket.IsSold" />
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="dataProdaji">Дата продажи:</label>
+            <InputDate class="form-control" id="dataProdaji" @bind-Value="ticket.DataProdaji" />
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="sellerName">Имя продавца:</label>
+            <InputText class="form-control" id="sellerName" @bind-Value="ticket.SellerName" />
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="trainId">Номер поезда (ID):</label>
+            <InputNumber class="form-control" id="trainId" @bind-Value="ticket.TrainId" />
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="passengerId">ID пассажира:</label>
+            <InputNumber class="form-control" id="passengerId" @bind-Value="ticket.PassengerId" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Сохранить</button>
+        <button class="btn btn-secondary" @onclick="Cancel">Отмена</button>
+    </EditForm>
+}
 
 @code {
+    [Parameter] public int Id { get; set; }
+    private Ticket? ticket;
 
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTicket();
+    }
+
+    private async Task LoadTicket()
+    {
+        try
+        {
+            string query = @"
+                query GetTicket($ticketId: Int!) {
+                    ticket(ticketId: $ticketId) {
+                        ticketId
+                        price
+                        isSold
+                        dataProdaji
+                        sellerName
+                        trainId
+                        passengerId
+                    }
+                }";
+
+            var variables = new { ticketId = Id };
+            ticket = await Query.ExecuteQueryAsync<Ticket>("ticket", query, variables);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка загрузки билета: {ex.Message}");
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            string mutation = @"
+                mutation UpdateTicket($ticketId: Int!, $price: Decimal!, $isSold: Boolean!, $dataProdaji: DateTime!, $sellerName: String!, $trainId: Int!, $passengerId: Int) {
+                    updateTicket(ticketId: $ticketId, price: $price, isSold: $isSold, dataProdaji: $dataProdaji, sellerName: $sellerName, trainId: $trainId, passengerId: $passengerId) {
+                        ticketId
+                        price
+                        isSold
+                        dataProdaji
+                        sellerName
+                        trainId
+                        passengerId
+                    }
+                }";
+
+            var variables = new
+            {
+                ticketId = Id,
+                price = ticket!.Price,
+                isSold = ticket.IsSold,
+                dataProdaji = ticket.DataProdaji.ToString("yyyy-MM-ddTHH:mm:ss"),
+                sellerName = ticket.SellerName,
+                trainId = ticket.TrainId,
+                passengerId = ticket.PassengerId
+            };
+
+            var result = await Mutation.ExecuteMutationAsync<Ticket>("updateTicket", mutation, variables);
+
+            if (result != null)
+            {
+                NavigationManager.NavigateTo("/TicketView");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка при обновлении билета: {ex.Message}");
+        }
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/TicketView");
+    }
 }

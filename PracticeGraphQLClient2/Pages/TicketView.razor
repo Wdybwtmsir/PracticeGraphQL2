@@ -1,20 +1,168 @@
 ﻿@page "/TicketView"
-@using BlazorBootstrap
 @using PracticeGraphQLClient2.DataAccess
 @using PracticeGraphQLClient2.DataAccess.Model
-@using System.ComponentModel.DataAnnotations
-@using System.Drawing
-
 @inject NavigationManager NavigationManager
+
 <h3>Список билетов</h3>
 
+@if (tickets == null)
+{
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Загрузка...</span>
+    </div>
+}
+else if (!tickets.Any())
+{
+    <p class="text-muted">Билеты не найдены</p>
+}
+else
+{
+    <table class="table table-striped table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Цена</th>
+                <th>Статус</th>
+                <th>Дата продажи</th>
+                <th>Продавец</th>
+                <th>Поезд</th>
+                <th>Пассажир</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var ticket in tickets)
+            {
+                <tr>
+                    <td>@ticket.TicketId</td>
+                    <td>@ticket.Price.ToString("C")</td>
+                    <td>
+                        @if (ticket.IsSold)
+                        {
+                            <span class="badge bg-success">Продан</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-warning">В наличии</span>
+                        }
+                    </td>
+                    <td>@ticket.DataProdaji.ToShortDateString()</td>
+                    <td>@ticket.SellerName</td>
+                    <td>
+                        @if (ticket.Train != null)
+                        {
+                            <span>@ticket.Train.TrainName (@ticket.Train.TrainNumber)</span>
+                        }
+                        else
+                        {
+                            <span>ID: @ticket.TrainId</span>
+                        }
+                    </td>
+                    <td>
+                        @if (ticket.Passenger != null)
+                        {
+                            <span>@ticket.Passenger.FirstName @ticket.Passenger.LastName</span>
+                        }
+                        else if (ticket.PassengerId.HasValue)
+                        {
+                            <span>ID: @ticket.PassengerId</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Не указан</span>
+                        }
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" @onclick="() => EditTicket(ticket.TicketId)">
+                            <i class="bi bi-pencil"></i> Редактировать
+                        </button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteTicket(ticket.TicketId)">
+                            <i class="bi bi-trash"></i> Удалить
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<button class="btn btn-success" @onclick="CreateTicket">
+    <i class="bi bi-plus-circle"></i> Купить билет
+</button>
+
 @code {
-    private List<Ticket> All = new();
+    private List<Ticket> tickets = new();
+
     protected override async Task OnInitializedAsync()
+    {
+        await LoadTickets();
+    }
+
+    private async Task LoadTickets()
     {
         try
         {
-            string completeQuery = "query"
+            string query = @"
+                query {
+                    tickets {
+                        ticketId
+                        price
+                        isSold
+                        dataProdaji
+                        sellerName
+                        trainId
+                        passengerId
+                        train {
+                            trainName
+                            trainNumber
+                            trainRoute
+                        }
+                        passenger {
+                            passengerId
+                            firstName
+                            lastName
+                            email
+                        }
+                    }
+                }";
+
+            tickets = await Query.ExecuteQueryReturnListAsync<Ticket>("tickets", query);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка загрузки билетов: {ex.Message}");
+        }
+    }
+
+    private void CreateTicket()
+    {
+        NavigationManager.NavigateTo("/CreateTicket");
+    }
+
+    private void EditTicket(int id)
+    {
+        NavigationManager.NavigateTo($"/EditTicket/{id}");
+    }
+
+    private async Task DeleteTicket(int id)
+    {
+        try
+        {
+            string mutation = @"
+                mutation DeleteTicket($ticketId: Int!) {
+                    deleteTicket(ticketId: $ticketId) {
+                        ticketId
+                    }
+                }";
+
+            var variables = new { ticketId = id };
+
+            await Mutation.ExecuteMutationAsync<Ticket>("deleteTicket", mutation, variables);
+            await LoadTickets();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка при удалении билета: {ex.Message}");
         }
     }
 }

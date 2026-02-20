@@ -1,4 +1,5 @@
 ﻿@inherits LayoutComponentBase
+
 <div class="page">
     <div class="sidebar">
         <NavMenu />
@@ -6,11 +7,22 @@
 
     <main>
         <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+            <div class="d-flex justify-content-between w-100">
+                <span class="text-muted">Железнодорожные билеты</span>
+                <a href="https://learn.microsoft.com/aspnet/core/" target="_blank" class="text-decoration-none">
+                    <i class="bi bi-question-circle"></i> About
+                </a>
+            </div>
         </div>
 
         <article class="content px-4">
             @Body
         </article>
+
+        <footer class="footer px-4 py-3 mt-auto bg-light">
+            <div class="text-center text-muted small">
+                &copy; @DateTime.Now.Year - Система продажи ЖД билетов
+            </div>
+        </footer>
     </main>
 </div>

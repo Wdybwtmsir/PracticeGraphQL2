@@ -3,12 +3,14 @@ using GraphQL.Client.Http;
 using GraphQL.Client.Serializer.Newtonsoft;
 using ModernHttpClient;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace PracticeGraphQLClient2.DataAccess
 {
     public class Mutation
     {
         private static GraphQLHttpClient? graphQLHttpClient;
+
         static Mutation()
         {
             var uri = new Uri("https://localhost:7153/graphql/");
@@ -19,28 +21,35 @@ namespace PracticeGraphQLClient2.DataAccess
             };
             graphQLHttpClient = new GraphQLHttpClient(graphQLOptions, new NewtonsoftJsonSerializer());
         }
-        public static async Task<T> ExceuteMutationAsyn<T>(string graphQLQueryType, string completeQueryString)
+
+        public static async Task<T> ExecuteMutationAsync<T>(string graphQLQueryType, string query, object? variables = null)
         {
             try
             {
                 var request = new GraphQLRequest
                 {
-                    Query = completeQueryString
+                    Query = query,
+                    Variables = variables
                 };
 
-                var response = await graphQLHttpClient!.SendMutationAsync<object>(request);
+                var response = await graphQLHttpClient!.SendMutationAsync<JObject>(request);
 
-                var stringResult = response.Data.ToString();
-                stringResult = stringResult!.Replace($"\"{graphQLQueryType}\":", string.Empty);
-                stringResult = stringResult.Remove(0, 1);
-                stringResult = stringResult.Remove(stringResult.Length - 1, 1);
+                if (response.Errors?.Any() == true)
+                {
+                    var errors = string.Join(", ", response.Errors.Select(e => e.Message));
+                    throw new Exception($"GraphQL errors: {errors}");
+                }
 
-                var result = JsonConvert.DeserializeObject<T>(stringResult);
+                if (response.Data.TryGetValue(graphQLQueryType, out var dataToken))
+                {
+                    return dataToken.ToObject<T>()!;
+                }
 
-                return result!;
+                return default!;
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Ошибка в ExecuteMutationAsync: {ex.Message}");
                 throw;
             }
         }

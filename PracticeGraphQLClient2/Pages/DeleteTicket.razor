@@ -1,5 +1,101 @@
-﻿<h3>DeleteTicket</h3>
+﻿@page "/DeleteTicket/{id:int}"
+@using PracticeGraphQLClient2.DataAccess
+@using PracticeGraphQLClient2.DataAccess.Model
+@inject NavigationManager NavigationManager
+
+<h3>Удаление билета</h3>
+
+@if (ticket == null)
+{
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Загрузка...</span>
+    </div>
+}
+else
+{
+    <div class="alert alert-danger" role="alert">
+        <h4 class="alert-heading">Внимание!</h4>
+        <p>Вы уверены, что хотите удалить билет №@ticket.TicketId?</p>
+        <hr>
+        <p class="mb-0">
+            <strong>Цена:</strong> @ticket.Price.ToString("C")<br />
+            <strong>Дата продажи:</strong> @ticket.DataProdaji.ToShortDateString()<br />
+            <strong>Продавец:</strong> @ticket.SellerName<br />
+            <strong>Статус:</strong> @(ticket.IsSold ? "Продан" : "В наличии")
+        </p>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <button class="btn btn-danger w-100" @onclick="ConfirmDelete">
+                <i class="bi bi-trash"></i> Да, удалить билет
+            </button>
+        </div>
+        <div class="col-md-6">
+            <button class="btn btn-secondary w-100" @onclick="Cancel">
+                <i class="bi bi-x-circle"></i> Отмена
+            </button>
+        </div>
+    </div>
+}
 
 @code {
+    [Parameter] public int Id { get; set; }
+    private Ticket? ticket;
 
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTicket();
+    }
+
+    private async Task LoadTicket()
+    {
+        try
+        {
+            string query = @"
+                query GetTicket($ticketId: Int!) {
+                    ticket(ticketId: $ticketId) {
+                        ticketId
+                        price
+                        isSold
+                        dataProdaji
+                        sellerName
+                    }
+                }";
+
+            var variables = new { ticketId = Id };
+            ticket = await Query.ExecuteQueryAsync<Ticket>("ticket", query, variables);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка загрузки билета: {ex.Message}");
+        }
+    }
+
+    private async Task ConfirmDelete()
+    {
+        try
+        {
+            string mutation = @"
+                mutation DeleteTicket($ticketId: Int!) {
+                    deleteTicket(ticketId: $ticketId) {
+                        ticketId
+                    }
+                }";
+
+            var variables = new { ticketId = Id };
+
+            await Mutation.ExecuteMutationAsync<Ticket>("deleteTicket", mutation, variables);
+            NavigationManager.NavigateTo("/TicketView");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка при удалении билета: {ex.Message}");
+        }
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/TicketView");
+    }
 }

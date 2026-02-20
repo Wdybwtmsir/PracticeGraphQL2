@@ -1,35 +1,99 @@
 ﻿@page "/CreateTicket"
-@using BlazorBootstrap
 @using PracticeGraphQLClient2.DataAccess
 @using PracticeGraphQLClient2.DataAccess.Model
-
 @inject NavigationManager NavigationManager
-<h3>Создание билета</h3>
-<div class="row">
-    <EditForm Model="@createTicket" OnValidSubmit="@CreateButtonClick">
-        <DataAnnotationsValidator/>
-        <ValidationSummary/>
-        <div class="form-group">
 
-        </div>
+<h3>Покупка билета</h3>
 
-    </EditForm>
-</div>
+<EditForm Model="@createTicket" OnValidSubmit="@HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary class="text-danger" />
+
+    <div class="form-group mb-3">
+        <label for="price">Цена:</label>
+        <InputNumber class="form-control" id="price" @bind-Value="createTicket.Price" />
+        <ValidationMessage For="@(() => createTicket.Price)" />
+    </div>
+
+    <div class="form-group mb-3">
+        <label for="isSold">Статус продажи:</label>
+        <InputCheckbox class="form-check-input" id="isSold" @bind-Value="createTicket.IsSold" />
+        <ValidationMessage For="@(() => createTicket.IsSold)" />
+    </div>
+
+    <div class="form-group mb-3">
+        <label for="dataProdaji">Дата продажи:</label>
+        <InputDate class="form-control" id="dataProdaji" @bind-Value="createTicket.DataProdaji" />
+        <ValidationMessage For="@(() => createTicket.DataProdaji)" />
+    </div>
+
+    <div class="form-group mb-3">
+        <label for="sellerName">Имя продавца:</label>
+        <InputText class="form-control" id="sellerName" @bind-Value="createTicket.SellerName" />
+        <ValidationMessage For="@(() => createTicket.SellerName)" />
+    </div>
+
+    <div class="form-group mb-3">
+        <label for="trainId">Номер поезда (ID):</label>
+        <InputNumber class="form-control" id="trainId" @bind-Value="createTicket.TrainId" />
+        <ValidationMessage For="@(() => createTicket.TrainId)" />
+    </div>
+
+    <div class="form-group mb-3">
+        <label for="passengerId">ID пассажира (необязательно):</label>
+        <InputNumber class="form-control" id="passengerId" @bind-Value="createTicket.PassengerId" />
+        <ValidationMessage For="@(() => createTicket.PassengerId)" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Купить билет</button>
+    <button class="btn btn-secondary" @onclick="Cancel">Отмена</button>
+</EditForm>
+
 @code {
-    private CreateTicketModel createTicket =
-        new CreateTicketModel();
-    private async Task CreateButtonClick()
+    private CreateTicketModel createTicket = new CreateTicketModel();
+
+    private async Task HandleValidSubmit()
     {
         try
         {
-            string query = "mutation{createTicketWithId(price:" + createTicket.Price + ",isSold:\"" + createTicket.IsSold + "\",dataProdaji:\"" + createTicket.DataProdaji + "\",sellerName:" + createTicket.SellerName + ",trainId:\"" + createTicket.TrainId + ",passengerId:\"" + createTicket.PassengerId + "){price,isSold,dataProdaji,sellerName,trainId,passengerId}}";
-            string graphQLQueryType = "createTicketWithId";
-            var result = await Mutation.ExceuteMutationAsyn<CreateTicket>(graphQLQueryType, query);
-            NavigationManager.NavigateTo($"TicketView");
+            string mutation = @"
+                mutation CreateTicket($price: Decimal!, $isSold: Boolean!, $dataProdaji: DateTime!, $sellerName: String!, $trainId: Int!, $passengerId: Int) {
+                    createTicketWithId(price: $price, isSold: $isSold, dataProdaji: $dataProdaji, sellerName: $sellerName, trainId: $trainId, passengerId: $passengerId) {
+                        ticketId
+                        price
+                        isSold
+                        dataProdaji
+                        sellerName
+                        trainId
+                        passengerId
+                    }
+                }";
+
+            var variables = new
+            {
+                price = createTicket.Price,
+                isSold = createTicket.IsSold,
+                dataProdaji = createTicket.DataProdaji.ToString("yyyy-MM-ddTHH:mm:ss"),
+                sellerName = createTicket.SellerName,
+                trainId = createTicket.TrainId,
+                passengerId = createTicket.PassengerId
+            };
+
+            var result = await Mutation.ExecuteMutationAsync<Ticket>("createTicketWithId", mutation, variables);
+
+            if (result != null)
+            {
+                NavigationManager.NavigateTo("/TicketView");
+            }
         }
-        catch(Exception)
+        catch (Exception ex)
         {
-            throw;
+            Console.WriteLine($"Ошибка при создании билета: {ex.Message}");
         }
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/TicketView");
     }
 }

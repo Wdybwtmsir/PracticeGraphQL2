@@ -1,0 +1,136 @@
+﻿@page "/CarriageSeats/{carriageId:int}"
+@using PracticeGraphQLClient2.DataAccess
+@using PracticeGraphQLClient2.DataAccess.Model
+@inject NavigationManager NavigationManager
+
+<h3>🪑 Места в вагоне №@carriage</h3>
+
+@if (isLoading)
+{
+    <div class="text-center my-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Загрузка...</span>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header bg-primary text-white">
+                    <h5>Информация о вагоне</h5>
+                </div>
+                <div class="card-body">
+                    @if (carriage != null)
+                    {
+                        <p><strong>Номер вагона:</strong> @carriage.Number</p>
+                        <p><strong>ID поезда:</strong> @carriage.TrainId</p>
+                    }
+                    else
+                    {
+                        <p class="text-muted">Информация о вагоне загружается...</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header bg-success text-white">
+                    <h5>Все места в вагоне</h5>
+                </div>
+                <div class="card-body">
+                    @if (allSeats != null && allSeats.Any())
+                    {
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach (var seat in allSeats.OrderBy(s => s.Number))
+                            {
+                                <span class="badge @(seat.IsBooked ? "bg-danger" : "bg-success") p-2" style="font-size: 1rem;">
+                                    Место @seat.Number
+                                </span>
+                            }
+                        </div>
+                        <p class="mt-2">Всего мест: @allSeats.Count</p>
+                    }
+                    else
+                    {
+                        <p class="text-muted">Нет информации о местах</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5>Свободные места</h5>
+                </div>
+                <div class="card-body">
+                    @if (availableSeats != null && availableSeats.Any())
+                    {
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach (var seat in availableSeats.OrderBy(s => s.Number))
+                            {
+                                <span class="badge bg-success p-2" style="font-size: 1rem;">
+                                    Место @seat.Number
+                                </span>
+                            }
+                        </div>
+                        <p class="mt-2">Свободных мест: @availableSeats.Count</p>
+                    }
+                    else
+                    {
+                        <p class="text-muted">Нет свободных мест</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <button class="btn btn-secondary" @onclick="GoBack">
+            ← Назад к вагонам
+        </button>
+    </div>
+}
+
+@code {
+    [Parameter] public int CarriageId { get; set; }
+
+    private Carriage? carriage;
+    private List<Seat> allSeats = new();
+    private List<Seat> availableSeats = new();
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        try
+        {
+            isLoading = true;
+            carriage = await Query.GetCarriageById(CarriageId);
+            allSeats = await Query.GetSeatsByCarriage(CarriageId);
+            availableSeats = await Query.GetAvailableSeatsInCarriage(CarriageId);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка загрузки: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void GoBack()
+    {
+        NavigationManager.NavigateTo("/Carriages");
+    }
+}

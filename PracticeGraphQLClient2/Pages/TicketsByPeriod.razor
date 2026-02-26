@@ -1,0 +1,61 @@
+﻿@page "/TicketsByPeriod"
+@using PracticeGraphQLClient2.DataAccess
+@using PracticeGraphQLClient2.DataAccess.Model
+@inject NavigationManager NavigationManager
+
+<h3>📅 Билеты за период</h3>
+
+<div class="row mb-3">
+    <div class="col-md-4">
+        <label class="form-label">Начало периода:</label>
+        <input type="date" class="form-control" @bind="startDate" />
+    </div>
+    <div class="col-md-4">
+        <label class="form-label">Конец периода:</label>
+        <input type="date" class="form-control" @bind="endDate" />
+    </div>
+    <div class="col-md-4 d-flex align-items-end">
+        <button class="btn btn-primary" @onclick="LoadTickets">Поиск</button>
+    </div>
+</div>
+
+@if (tickets.Any())
+{
+    <h5>Найдено билетов: @tickets.Count</h5>
+    <h6>Общая выручка: @totalRevenue.ToString("C")</h6>
+    
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Цена</th>
+                <th>Дата</th>
+                <th>Продавец</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var ticket in tickets)
+            {
+                <tr>
+                    <td>@ticket.TicketId</td>
+                    <td>@ticket.Price.ToString("C")</td>
+                    <td>@ticket.DataProdaji.ToShortDateString()</td>
+                    <td>@ticket.SellerName</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private DateTime startDate = DateTime.Now.AddDays(-30);
+    private DateTime endDate = DateTime.Now;
+    private List<Ticket> tickets = new();
+    private decimal totalRevenue;
+
+    private async Task LoadTickets()
+    {
+        tickets = await Query.GetSoldTicketsByPeriod(startDate, endDate);
+        totalRevenue = await Query.GetTotalSoldTicketsRevenue(startDate, endDate);
+    }
+}

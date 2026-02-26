@@ -1,0 +1,56 @@
+﻿@page "/TrainDetails/{id:int}"
+@using PracticeGraphQLClient2.DataAccess
+@using PracticeGraphQLClient2.DataAccess.Model
+@inject NavigationManager NavigationManager
+
+<h3>Детали поезда</h3>
+
+@if (isLoading)
+{
+    <p>Загрузка...</p>
+}
+else if (train == null)
+{
+    <p>Поезд не найден</p>
+}
+else
+{
+    <div>
+        <p><strong>Название:</strong> @train.TrainName</p>
+        <p><strong>Номер:</strong> @train.TrainNumber</p>
+        <p><strong>Маршрут:</strong> @train.TrainRoute</p>
+    </div>
+
+    <button class="btn btn-secondary" @onclick="GoBack">
+        Назад
+    </button>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private Train? train;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            isLoading = true;
+            train = await Query.GetTrainById(Id);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void GoBack()
+    {
+        NavigationManager.NavigateTo("/Trains");
+    }
+}

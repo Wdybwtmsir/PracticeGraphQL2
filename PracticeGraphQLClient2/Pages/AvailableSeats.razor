@@ -1,0 +1,117 @@
+﻿@page "/AvailableSeats"
+@using PracticeGraphQLClient2.DataAccess
+@using PracticeGraphQLClient2.DataAccess.Model
+@inject NavigationManager NavigationManager
+
+<h3>🪑 Свободные места</h3>
+
+<div class="row mb-3">
+    <div class="col-md-4">
+        <label class="form-label">Выберите поезд:</label>
+        <select class="form-select" @onchange="OnTrainSelected">
+            <option value="">-- Выберите поезд --</option>
+            @foreach (var train in trains)
+            {
+                <option value="@train.TrainId">@train.TrainName - @train.TrainRoute</option>
+            }
+        </select>
+    </div>
+</div>
+
+@if (selectedTrainId > 0)
+{
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5>Все свободные места</h5>
+                </div>
+                <div class="card-body">
+                    @if (availableSeats.Any())
+                    {
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach (var seat in availableSeats)
+                            {
+                                <span class="badge bg-success p-2"
+                                      title="Вагон @seat.Carriage?.Number">
+                                    Вагон @seat.Carriage?.Number - Место @seat.Number
+                                </span>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p>Нет свободных мест</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5>Поиск по цене</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-2">
+                        <div class="col">
+                            <input type="number" class="form-control" placeholder="Мин. цена" @bind="minPrice" />
+                        </div>
+                        <div class="col">
+                            <input type="number" class="form-control" placeholder="Макс. цена" @bind="maxPrice" />
+                        </div>
+                        <div class="col-auto">
+                            <button class="btn btn-primary" @onclick="SearchByPrice">Поиск</button>
+                        </div>
+                    </div>
+
+                    @if (seatsByPrice.Any())
+                    {
+                        <h6>Результаты:</h6>
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach (var seat in seatsByPrice)
+                            {
+                                <span class="badge bg-warning p-2">
+                                    Вагон @seat.Carriage?.Number - Место @seat.Number
+                                </span>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Train> trains = new();
+    private int selectedTrainId;
+    private List<Seat> availableSeats = new();
+    private List<Seat> seatsByPrice = new();
+    private decimal minPrice = 500;
+    private decimal maxPrice = 2000;
+
+    protected override async Task OnInitializedAsync()
+    {
+        trains = await Query.GetAllTrains();
+    }
+
+    private async Task OnTrainSelected(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int trainId))
+        {
+            selectedTrainId = trainId;
+            await LoadAvailableSeats();
+        }
+    }
+
+    private async Task LoadAvailableSeats()
+    {
+        availableSeats = await Query.GetAvailableSeats(selectedTrainId);
+    }
+
+    private async Task SearchByPrice()
+    {
+        seatsByPrice = await Query.GetAvailableSeatsByPriceRange(selectedTrainId, minPrice, maxPrice);
+    }
+}

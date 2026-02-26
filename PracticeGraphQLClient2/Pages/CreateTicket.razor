@@ -3,92 +3,85 @@
 @using PracticeGraphQLClient2.DataAccess.Model
 @inject NavigationManager NavigationManager
 
-<h3>Покупка билета</h3>
+<h3>🛒 Покупка билета</h3>
 
-<EditForm Model="@createTicket" OnValidSubmit="@HandleValidSubmit">
-    <DataAnnotationsValidator />
-    <ValidationSummary class="text-danger" />
-
-    <div class="form-group mb-3">
-        <label for="price">Цена:</label>
-        <InputNumber class="form-control" id="price" @bind-Value="createTicket.Price" />
-        <ValidationMessage For="@(() => createTicket.Price)" />
+<EditForm Model="@newTicket" OnValidSubmit="@HandleValidSubmit">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label class="form-label">Цена:</label>
+                <InputNumber class="form-control" @bind-Value="newTicket.Price" />
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label class="form-label">Статус:</label>
+                <div class="form-check">
+                    <InputCheckbox class="form-check-input" @bind-Value="newTicket.IsSold" />
+                    <label class="form-check-label">Билет продан</label>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="form-group mb-3">
-        <label for="isSold">Статус продажи:</label>
-        <InputCheckbox class="form-check-input" id="isSold" @bind-Value="createTicket.IsSold" />
-        <ValidationMessage For="@(() => createTicket.IsSold)" />
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label class="form-label">Дата продажи:</label>
+                <InputDate class="form-control" @bind-Value="newTicket.DataProdaji" />
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label class="form-label">Продавец:</label>
+                <InputText class="form-control" @bind-Value="newTicket.SellerName" />
+            </div>
+        </div>
     </div>
 
-    <div class="form-group mb-3">
-        <label for="dataProdaji">Дата продажи:</label>
-        <InputDate class="form-control" id="dataProdaji" @bind-Value="createTicket.DataProdaji" />
-        <ValidationMessage For="@(() => createTicket.DataProdaji)" />
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label class="form-label">ID поезда:</label>
+                <InputNumber class="form-control" @bind-Value="newTicket.TrainId" />
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label class="form-label">ID пассажира (необязательно):</label>
+                <InputNumber class="form-control" @bind-Value="newTicket.PassengerId" />
+            </div>
+        </div>
     </div>
 
-    <div class="form-group mb-3">
-        <label for="sellerName">Имя продавца:</label>
-        <InputText class="form-control" id="sellerName" @bind-Value="createTicket.SellerName" />
-        <ValidationMessage For="@(() => createTicket.SellerName)" />
-    </div>
-
-    <div class="form-group mb-3">
-        <label for="trainId">Номер поезда (ID):</label>
-        <InputNumber class="form-control" id="trainId" @bind-Value="createTicket.TrainId" />
-        <ValidationMessage For="@(() => createTicket.TrainId)" />
-    </div>
-
-    <div class="form-group mb-3">
-        <label for="passengerId">ID пассажира (необязательно):</label>
-        <InputNumber class="form-control" id="passengerId" @bind-Value="createTicket.PassengerId" />
-        <ValidationMessage For="@(() => createTicket.PassengerId)" />
-    </div>
-
-    <button type="submit" class="btn btn-primary">Купить билет</button>
-    <button class="btn btn-secondary" @onclick="Cancel">Отмена</button>
+    <button type="submit" class="btn btn-primary">💾 Сохранить</button>
+    <button type="button" class="btn btn-secondary" @onclick="Cancel">❌ Отмена</button>
 </EditForm>
 
 @code {
-    private CreateTicketModel createTicket = new CreateTicketModel();
+    private CreateTicketModel newTicket = new CreateTicketModel
+    {
+        DataProdaji = DateTime.Now,
+        IsSold = true
+    };
 
     private async Task HandleValidSubmit()
     {
         try
         {
-            string mutation = @"
-                mutation CreateTicket($price: Decimal!, $isSold: Boolean!, $dataProdaji: DateTime!, $sellerName: String!, $trainId: Int!, $passengerId: Int) {
-                    createTicketWithId(price: $price, isSold: $isSold, dataProdaji: $dataProdaji, sellerName: $sellerName, trainId: $trainId, passengerId: $passengerId) {
-                        ticketId
-                        price
-                        isSold
-                        dataProdaji
-                        sellerName
-                        trainId
-                        passengerId
-                    }
-                }";
-
-            var variables = new
-            {
-                price = createTicket.Price,
-                isSold = createTicket.IsSold,
-                dataProdaji = createTicket.DataProdaji.ToString("yyyy-MM-ddTHH:mm:ss"),
-                sellerName = createTicket.SellerName,
-                trainId = createTicket.TrainId,
-                passengerId = createTicket.PassengerId
-            };
-
-            var result = await Mutation.ExecuteMutationAsync<Ticket>("createTicketWithId", mutation, variables);
-
-            if (result != null)
-            {
-                NavigationManager.NavigateTo("/TicketView");
-            }
+            await Mutation.CreateTicketWithPassengerId(
+                newTicket.Price,
+                newTicket.IsSold,
+                newTicket.DataProdaji,
+                newTicket.SellerName,
+                newTicket.TrainId,
+                newTicket.PassengerId ?? 0
+            );
+            NavigationManager.NavigateTo("/TicketView");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Ошибка при создании билета: {ex.Message}");
+            Console.WriteLine($"Ошибка: {ex.Message}");
         }
     }
 

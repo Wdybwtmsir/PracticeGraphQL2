@@ -3,17 +3,21 @@
 @using PracticeGraphQLClient2.DataAccess.Model
 @inject NavigationManager NavigationManager
 
-<h3>Список билетов</h3>
+<h3 class="mb-3">🎫 Список билетов</h3>
 
-@if (tickets == null)
+@if (isLoading)
 {
-    <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Загрузка...</span>
+    <div class="text-center my-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Загрузка...</span>
+        </div>
     </div>
 }
 else if (!tickets.Any())
 {
-    <p class="text-muted">Билеты не найдены</p>
+    <div class="alert alert-info">
+        Билеты не найдены. <a href="/CreateTicket">Создать первый билет</a>
+    </div>
 }
 else
 {
@@ -48,24 +52,11 @@ else
                     </td>
                     <td>@ticket.DataProdaji.ToShortDateString()</td>
                     <td>@ticket.SellerName</td>
-                    <td>
-                        @if (ticket.Train != null)
-                        {
-                            <span>@ticket.Train.TrainName (@ticket.Train.TrainNumber)</span>
-                        }
-                        else
-                        {
-                            <span>ID: @ticket.TrainId</span>
-                        }
-                    </td>
+                    <td>@(ticket.Train?.TrainName ?? $"ID: {ticket.TrainId}")</td>
                     <td>
                         @if (ticket.Passenger != null)
                         {
                             <span>@ticket.Passenger.FirstName @ticket.Passenger.LastName</span>
-                        }
-                        else if (ticket.PassengerId.HasValue)
-                        {
-                            <span>ID: @ticket.PassengerId</span>
                         }
                         else
                         {
@@ -74,10 +65,10 @@ else
                     </td>
                     <td>
                         <button class="btn btn-sm btn-primary" @onclick="() => EditTicket(ticket.TicketId)">
-                            <i class="bi bi-pencil"></i> Редактировать
+                            ✏️
                         </button>
                         <button class="btn btn-sm btn-danger" @onclick="() => DeleteTicket(ticket.TicketId)">
-                            <i class="bi bi-trash"></i> Удалить
+                            🗑️
                         </button>
                     </td>
                 </tr>
@@ -87,11 +78,12 @@ else
 }
 
 <button class="btn btn-success" @onclick="CreateTicket">
-    <i class="bi bi-plus-circle"></i> Купить билет
+    ➕ Купить билет
 </button>
 
 @code {
     private List<Ticket> tickets = new();
+    private bool isLoading = true;
 
     protected override async Task OnInitializedAsync()
     {
@@ -102,35 +94,16 @@ else
     {
         try
         {
-            string query = @"
-                query {
-                    tickets {
-                        ticketId
-                        price
-                        isSold
-                        dataProdaji
-                        sellerName
-                        trainId
-                        passengerId
-                        train {
-                            trainName
-                            trainNumber
-                            trainRoute
-                        }
-                        passenger {
-                            passengerId
-                            firstName
-                            lastName
-                            email
-                        }
-                    }
-                }";
-
-            tickets = await Query.ExecuteQueryReturnListAsync<Ticket>("tickets", query);
+            isLoading = true;
+            tickets = await Query.GetAllTickets();
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Ошибка загрузки билетов: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
         }
     }
 
@@ -144,25 +117,8 @@ else
         NavigationManager.NavigateTo($"/EditTicket/{id}");
     }
 
-    private async Task DeleteTicket(int id)
+    private void DeleteTicket(int id)
     {
-        try
-        {
-            string mutation = @"
-                mutation DeleteTicket($ticketId: Int!) {
-                    deleteTicket(ticketId: $ticketId) {
-                        ticketId
-                    }
-                }";
-
-            var variables = new { ticketId = id };
-
-            await Mutation.ExecuteMutationAsync<Ticket>("deleteTicket", mutation, variables);
-            await LoadTickets();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Ошибка при удалении билета: {ex.Message}");
-        }
+        NavigationManager.NavigateTo($"/DeleteTicket/{id}");
     }
 }

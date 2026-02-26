@@ -1,0 +1,95 @@
+﻿@page "/Carriages"
+@using PracticeGraphQLClient2.DataAccess
+@using PracticeGraphQLClient2.DataAccess.Model
+@inject NavigationManager NavigationManager
+
+<h3>🚃 Вагоны</h3>
+
+<div class="row mb-3">
+    <div class="col-md-4">
+        <label class="form-label">Выберите поезд:</label>
+        <select class="form-select" @onchange="OnTrainSelected">
+            <option value="">-- Выберите поезд --</option>
+            @foreach (var train in trains)
+            {
+                <option value="@train.TrainId">@train.TrainName - @train.TrainRoute</option>
+            }
+        </select>
+    </div>
+</div>
+
+@if (carriages.Any())
+{
+    <div class="row">
+        @foreach (var carriage in carriages)
+        {
+            <div class="col-md-4 mb-3">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5>Вагон №@carriage.Number</h5>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>ID вагона:</strong> @carriage.CarriageId</p>
+                        <button class="btn btn-sm btn-info"
+                                @onclick="() => ViewCarriageSeats(carriage.CarriageId)">
+                            🪑 Показать места
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else if (selectedTrainId > 0)
+{
+    <p class="text-muted">В этом поезде нет вагонов</p>
+}
+
+@code {
+    private List<Train> trains = new();
+    private List<Carriage> carriages = new();
+    private int selectedTrainId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTrains();
+    }
+
+    private async Task LoadTrains()
+    {
+        try
+        {
+            trains = await Query.GetAllTrains();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка загрузки поездов: {ex.Message}");
+        }
+    }
+
+    private async Task OnTrainSelected(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int trainId))
+        {
+            selectedTrainId = trainId;
+            await LoadCarriages(trainId);
+        }
+    }
+
+    private async Task LoadCarriages(int trainId)
+    {
+        try
+        {
+            carriages = await Query.GetCarriagesByTrain(trainId);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка загрузки вагонов: {ex.Message}");
+        }
+    }
+
+    private void ViewCarriageSeats(int carriageId)
+    {
+        NavigationManager.NavigateTo($"/CarriageSeats/{carriageId}");
+    }
+}

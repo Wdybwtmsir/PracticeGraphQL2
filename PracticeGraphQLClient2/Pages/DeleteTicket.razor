@@ -3,40 +3,32 @@
 @using PracticeGraphQLClient2.DataAccess.Model
 @inject NavigationManager NavigationManager
 
-<h3>Удаление билета</h3>
+<h3>🗑️ Удаление билета</h3>
 
 @if (ticket == null)
 {
-    <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Загрузка...</span>
+    <div class="text-center my-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Загрузка...</span>
+        </div>
     </div>
 }
 else
 {
-    <div class="alert alert-danger" role="alert">
+    <div class="alert alert-danger">
         <h4 class="alert-heading">Внимание!</h4>
         <p>Вы уверены, что хотите удалить билет №@ticket.TicketId?</p>
         <hr>
-        <p class="mb-0">
+        <p>
             <strong>Цена:</strong> @ticket.Price.ToString("C")<br />
-            <strong>Дата продажи:</strong> @ticket.DataProdaji.ToShortDateString()<br />
+            <strong>Дата:</strong> @ticket.DataProdaji.ToShortDateString()<br />
             <strong>Продавец:</strong> @ticket.SellerName<br />
-            <strong>Статус:</strong> @(ticket.IsSold ? "Продан" : "В наличии")
+            <strong>Статус:</strong> @(ticket.IsSold ? "Продан" : "Не продан")
         </p>
     </div>
 
-    <div class="row">
-        <div class="col-md-6">
-            <button class="btn btn-danger w-100" @onclick="ConfirmDelete">
-                <i class="bi bi-trash"></i> Да, удалить билет
-            </button>
-        </div>
-        <div class="col-md-6">
-            <button class="btn btn-secondary w-100" @onclick="Cancel">
-                <i class="bi bi-x-circle"></i> Отмена
-            </button>
-        </div>
-    </div>
+    <button class="btn btn-danger" @onclick="ConfirmDelete">🗑️ Да, удалить</button>
+    <button class="btn btn-secondary" @onclick="Cancel">❌ Отмена</button>
 }
 
 @code {
@@ -52,19 +44,7 @@ else
     {
         try
         {
-            string query = @"
-                query GetTicket($ticketId: Int!) {
-                    ticket(ticketId: $ticketId) {
-                        ticketId
-                        price
-                        isSold
-                        dataProdaji
-                        sellerName
-                    }
-                }";
-
-            var variables = new { ticketId = Id };
-            ticket = await Query.ExecuteQueryAsync<Ticket>("ticket", query, variables);
+            ticket = await Query.GetTicketById(Id);
         }
         catch (Exception ex)
         {
@@ -76,21 +56,12 @@ else
     {
         try
         {
-            string mutation = @"
-                mutation DeleteTicket($ticketId: Int!) {
-                    deleteTicket(ticketId: $ticketId) {
-                        ticketId
-                    }
-                }";
-
-            var variables = new { ticketId = Id };
-
-            await Mutation.ExecuteMutationAsync<Ticket>("deleteTicket", mutation, variables);
+            await Mutation.DeleteTicket(Id);
             NavigationManager.NavigateTo("/TicketView");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Ошибка при удалении билета: {ex.Message}");
+            Console.WriteLine($"Ошибка при удалении: {ex.Message}");
         }
     }
 

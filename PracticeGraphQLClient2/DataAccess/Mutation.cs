@@ -4,6 +4,7 @@ using GraphQL.Client.Serializer.Newtonsoft;
 using ModernHttpClient;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using PracticeGraphQLClient2.DataAccess.Model;
 
 namespace PracticeGraphQLClient2.DataAccess
 {
@@ -52,6 +53,75 @@ namespace PracticeGraphQLClient2.DataAccess
                 Console.WriteLine($"Ошибка в ExecuteMutationAsync: {ex.Message}");
                 throw;
             }
+        }
+        public static async Task<Ticket> CreateTicketWithPassengerId(decimal price, bool isSold, DateTime dataProdaji, string sellerName, int trainId, int passengerId)
+        {
+            string mutation = @"
+                mutation CreateTicketWithPassengerId($price: Decimal!, $isSold: Boolean!, $dataProdaji: DateTime!, $sellerName: String!, $trainId: Int!, $passengerId: Int!) {
+                    createTicketWithPassengerId(price: $price, isSold: $isSold, dataProdaji: $dataProdaji, sellerName: $sellerName, trainId: $trainId, passengerId: $passengerId) {
+                        ticketId
+                        price
+                        isSold
+                        dataProdaji
+                        sellerName
+                        trainId
+                        passengerId
+                    }
+                }";
+
+            var variables = new
+            {
+                price,
+                isSold,
+                dataProdaji = dataProdaji.ToString("yyyy-MM-ddTHH:mm:ss"),
+                sellerName,
+                trainId,
+                passengerId
+            };
+
+            return await ExecuteMutationAsync<Ticket>("createTicketWithPassengerId", mutation, variables);
+        }
+
+        public static async Task<Ticket> EditTicketWithId(int id, decimal price, bool isSold, DateTime dataProdaji, string sellerName, int trainId, int passengerId)
+        {
+            string mutation = @"
+                mutation EditTicketWithId($id: Int!, $price: Decimal!, $isSold: Boolean!, $dataProdaji: DateTime!, $sellerName: String!, $trainId: Int!, $passengerId: Int!) {
+                    editTicketWithId(id: $id, price: $price, isSold: $isSold, dataProdaji: $dataProdaji, sellerName: $sellerName, trainId: $trainId, passengerId: $passengerId) {
+                        ticketId
+                        price
+                        isSold
+                        dataProdaji
+                        sellerName
+                        trainId
+                        passengerId
+                    }
+                }";
+
+            var variables = new
+            {
+                id,
+                price,
+                isSold,
+                dataProdaji = dataProdaji.ToString("yyyy-MM-ddTHH:mm:ss"),
+                sellerName,
+                trainId,
+                passengerId
+            };
+
+            return await ExecuteMutationAsync<Ticket>("editTicketWithId", mutation, variables);
+        }
+
+        public static async Task<Ticket> DeleteTicket(int ticketId)
+        {
+            string mutation = @"
+                mutation DeleteTicket($id: Int!) {
+                    deleteTicket(id: $id) {
+                        ticketId
+                    }
+                }";
+
+            var variables = new { id = ticketId };
+            return await ExecuteMutationAsync<Ticket>("deleteTicket", mutation, variables);
         }
     }
 }

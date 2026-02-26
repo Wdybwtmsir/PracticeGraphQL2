@@ -1,0 +1,79 @@
+﻿@page "/PassengerMovements"
+@using PracticeGraphQLClient2.DataAccess
+@using PracticeGraphQLClient2.DataAccess.Model
+@inject NavigationManager NavigationManager
+
+<h3>🔄 Поиск перемещений пассажира</h3>
+
+<div class="row mb-3">
+    <div class="col-md-4">
+        <label class="form-label">ID пассажира:</label>
+        <input type="number" class="form-control" @bind="passengerId" />
+    </div>
+    <div class="col-md-2 d-flex align-items-end">
+        <button class="btn btn-primary" @onclick="Search">Найти</button>
+    </div>
+</div>
+
+@if (passenger != null)
+{
+    <div class="alert alert-info">
+        Пассажир: @passenger.LastName @passenger.FirstName @passenger.SurName
+    </div>
+}
+
+@if (movements.Any())
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Поезд</th>
+                <th>Маршрут</th>
+                <th>Отправление</th>
+                <th>Прибытие</th>
+                <th>Дата</th>
+                <th>Цена</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var move in movements)
+            {
+                <tr>
+                    <td>@move.TrainName (@move.TrainNumber)</td>
+                    <td>@move.Route</td>
+                    <td>@move.DepartureStation</td>
+                    <td>@move.ArrivalStation</td>
+                    <td>@move.PurchaseDate.ToShortDateString()</td>
+                    <td>@move.TicketPrice.ToString("C")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else if (searched)
+{
+    <div class="alert alert-warning">
+        У пассажира нет поездок
+    </div>
+}
+
+@code {
+    private int passengerId;
+    private Passenger? passenger;
+    private List<PassengerMovement> movements = new();
+    private bool searched = false;
+
+    private async Task Search()
+    {
+        try
+        {
+            searched = true;
+            passenger = await Query.GetPassengerById(passengerId);
+            movements = await Query.GetPassengerMovements(passengerId);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка: {ex.Message}");
+        }
+    }
+}

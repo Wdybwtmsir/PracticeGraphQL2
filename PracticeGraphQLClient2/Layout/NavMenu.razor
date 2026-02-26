@@ -1,6 +1,6 @@
 ﻿<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="">Железнодорожные билеты</a>
+        <a class="navbar-brand" href="">🚂 ЖД Билеты</a>
         <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -9,14 +9,18 @@
 
 <div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
     <nav class="nav flex-column">
+
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
                 <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Главная
             </NavLink>
         </div>
+        <div class="nav-section-header px-3 py-2 mt-2">
+            <span class="text-white-50 small fw-bold">🎫 БИЛЕТЫ</span>
+        </div>
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="TicketView">
-                <span class="bi bi-ticket-perforated-fill-nav-menu" aria-hidden="true"></span> Билеты
+                <span class="bi bi-ticket-perforated-fill-nav-menu" aria-hidden="true"></span> Все билеты
             </NavLink>
         </div>
         <div class="nav-item px-3">
@@ -25,13 +29,44 @@
             </NavLink>
         </div>
         <div class="nav-item px-3">
+            <NavLink class="nav-link" href="TicketsByPeriod">
+                <span class="bi bi-calendar-range-fill-nav-menu" aria-hidden="true"></span> Билеты за период
+            </NavLink>
+        </div>
+        <div class="nav-section-header px-3 py-2 mt-3">
+            <span class="text-white-50 small fw-bold">🚂 ПОЕЗДА</span>
+        </div>
+        <div class="nav-item px-3">
             <NavLink class="nav-link" href="Trains">
-                <span class="bi bi-train-front-fill-nav-menu" aria-hidden="true"></span> Поезда
+                <span class="bi bi-train-front-fill-nav-menu" aria-hidden="true"></span> Все поезда
             </NavLink>
         </div>
         <div class="nav-item px-3">
+            <NavLink class="nav-link" href="AvailableSeats">
+                <span class="bi bi-seat-fill-nav-menu" aria-hidden="true"></span> Свободные места
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="Carriages">
+                <span class="bi bi-layers-fill-nav-menu" aria-hidden="true"></span> Вагоны
+            </NavLink>
+        </div>
+        <div class="nav-section-header px-3 py-2 mt-3">
+            <span class="text-white-50 small fw-bold">👥 ПАССАЖИРЫ</span>
+        </div>
+        <div class="nav-item px-3">
             <NavLink class="nav-link" href="Passengers">
-                <span class="bi bi-people-fill-nav-menu" aria-hidden="true"></span> Пассажиры
+                <span class="bi bi-people-fill-nav-menu" aria-hidden="true"></span> Все пассажиры
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="PassengerMovements">
+                <span class="bi bi-diagram-3-fill-nav-menu" aria-hidden="true"></span> Перемещения
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="PassengerBySeat">
+                <span class="bi bi-search-heart-fill-nav-menu" aria-hidden="true"></span> Поиск по месту
             </NavLink>
         </div>
     </nav>

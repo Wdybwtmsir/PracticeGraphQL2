@@ -1,0 +1,66 @@
+﻿@page "/Passengers"
+@using PracticeGraphQLClient2.DataAccess
+@using PracticeGraphQLClient2.DataAccess.Model
+@inject NavigationManager NavigationManager
+
+<h3>Список пассажиров</h3>
+
+@if (isLoading)
+{
+    <p>Загрузка...</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Имя</th>
+                <th>Фамилия</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var passenger in passengers)
+            {
+                <tr>
+                    <td>@passenger.PassengerId</td>
+                    <td>@passenger.FirstName</td>
+                    <td>@passenger.LastName</td>
+                    <td>
+                        <button class="btn btn-primary" @onclick="() => GoToDetails(passenger.PassengerId)">
+                            Подробнее
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Passenger> passengers = new();
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            isLoading = true;
+            passengers = await Query.GetAllPassengers();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void GoToDetails(int id)
+    {
+        NavigationManager.NavigateTo("/PassengerDetails/" + id);
+    }
+}

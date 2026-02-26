@@ -1,162 +1,85 @@
-﻿@page "/"
-@using PracticeGraphQLClient2.DataAccess
-@using PracticeGraphQLClient2.DataAccess.Model
-@inject NavigationManager NavigationManager
-
-<PageTitle>Главная - ЖД Билеты</PageTitle>
-
-<div class="container mt-4">
-    <div class="jumbotron bg-light p-5 rounded-3 mb-4">
-        <h1 class="display-4">Добро пожаловать в систему продажи ЖД билетов!</h1>
-        <p class="lead">Управляйте билетами, поездами и пассажирами в одном месте.</p>
-        <hr class="my-4">
-        <p>Используйте навигационное меню для доступа к разделам или быстрые действия ниже.</p>
+﻿<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">🚂 ЖД Билеты</a>
+        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
     </div>
+</div>
 
-    <div class="row">
-        <div class="col-md-4 mb-4">
-            <div class="card h-100">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="card-title mb-0">Билеты</h5>
-                </div>
-                <div class="card-body">
-                    <p class="card-text">Просмотр, создание, редактирование и удаление билетов.</p>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="badge bg-info">Всего: @ticketsCount</span>
-                        <button class="btn btn-sm btn-primary" @onclick="GoToTickets">
-                            Перейти к билетам →
-                        </button>
-                    </div>
-                </div>
-            </div>
+<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
+    <nav class="nav flex-column">
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Главная
+            </NavLink>
         </div>
 
-        <div class="col-md-4 mb-4">
-            <div class="card h-100">
-                <div class="card-header bg-success text-white">
-                    <h5 class="card-title mb-0">Поезда</h5>
-                </div>
-                <div class="card-body">
-                    <p class="card-text">Управление поездами, маршрутами и вагонами.</p>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="badge bg-info">Всего: @trainsCount</span>
-                        <button class="btn btn-sm btn-success" @onclick="GoToTrains">
-                            Перейти к поездам →
-                        </button>
-                    </div>
-                </div>
-            </div>
+        <div class="nav-section-header px-3 py-2 mt-2">
+            <span class="text-white-50 small fw-bold">🎫 БИЛЕТЫ</span>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="TicketView">
+                <span class="bi bi-ticket-perforated-fill-nav-menu" aria-hidden="true"></span> Все билеты
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="CreateTicket">
+                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Купить билет
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="TicketsByPeriod">
+                <span class="bi bi-calendar-range-fill-nav-menu" aria-hidden="true"></span> Билеты за период
+            </NavLink>
         </div>
 
-        <div class="col-md-4 mb-4">
-            <div class="card h-100">
-                <div class="card-header bg-warning text-dark">
-                    <h5 class="card-title mb-0">Пассажиры</h5>
-                </div>
-                <div class="card-body">
-                    <p class="card-text">Управление пассажирами и их данными.</p>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="badge bg-info">Всего: @passengersCount</span>
-                        <button class="btn btn-sm btn-warning" @onclick="GoToPassengers">
-                            Перейти к пассажирам →
-                        </button>
-                    </div>
-                </div>
-            </div>
+        <div class="nav-section-header px-3 py-2 mt-3">
+            <span class="text-white-50 small fw-bold">🚂 ПОЕЗДА</span>
         </div>
-    </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="Trains">
+                <span class="bi bi-train-front-fill-nav-menu" aria-hidden="true"></span> Все поезда
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="AvailableSeats">
+                <span class="bi bi-seat-fill-nav-menu" aria-hidden="true"></span> Свободные места
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="Carriages">
+                <span class="bi bi-layers-fill-nav-menu" aria-hidden="true"></span> Вагоны
+            </NavLink>
+        </div>
 
-    @if (recentTickets.Any())
-    {
-        <div class="row mt-4">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header bg-secondary text-white">
-                        <h5 class="card-title mb-0">Последние билеты</h5>
-                    </div>
-                    <div class="card-body">
-                        <table class="table table-sm">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Цена</th>
-                                    <th>Дата</th>
-                                    <th>Продавец</th>
-                                    <th>Статус</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var ticket in recentTickets)
-                                {
-                                    <tr>
-                                        <td>@ticket.TicketId</td>
-                                        <td>@ticket.Price.ToString("C")</td>
-                                        <td>@ticket.DataProdaji.ToShortDateString()</td>
-                                        <td>@ticket.SellerName</td>
-                                        <td>
-                                            @if (ticket.IsSold)
-                                            {
-                                                <span class="badge bg-success">Продан</span>
-                                            }
-                                            else
-                                            {
-                                                <span class="badge bg-warning">В наличии</span>
-                                            }
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+        <div class="nav-section-header px-3 py-2 mt-3">
+            <span class="text-white-50 small fw-bold">👥 ПАССАЖИРЫ</span>
         </div>
-    }
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="Passengers">
+                <span class="bi bi-people-fill-nav-menu" aria-hidden="true"></span> Все пассажиры
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="PassengerMovements">
+                <span class="bi bi-diagram-3-fill-nav-menu" aria-hidden="true"></span> Перемещения
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="PassengerBySeat">
+                <span class="bi bi-search-heart-fill-nav-menu" aria-hidden="true"></span> Поиск по месту
+            </NavLink>
+        </div>
+    </nav>
 </div>
 
 @code {
-    private int ticketsCount = 0;
-    private int trainsCount = 0;
-    private int passengersCount = 0;
-    private List<Ticket> recentTickets = new();
-
-    protected override async Task OnInitializedAsync()
+    private bool collapseNavMenu = true;
+    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+    private void ToggleNavMenu()
     {
-        await LoadStatistics();
+        collapseNavMenu = !collapseNavMenu;
     }
-
-    private async Task LoadStatistics()
-    {
-        try
-        {
-            var ticketsQuery = @"
-                query {
-                    tickets {
-                        ticketId
-                    }
-                }";
-            var tickets = await Query.ExecuteQueryReturnListAsync<Ticket>("tickets", ticketsQuery);
-            ticketsCount = tickets?.Count ?? 0;
-            var recentQuery = @"
-                query {
-                    tickets {
-                        ticketId
-                        price
-                        isSold
-                        dataProdaji
-                        sellerName
-                    }
-                }";
-            var allTickets = await Query.ExecuteQueryReturnListAsync<Ticket>("tickets", recentQuery);
-            recentTickets = allTickets?.OrderByDescending(t => t.DataProdaji).Take(5).ToList() ?? new();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Ошибка загрузки статистики: {ex.Message}");
-        }
-    }
-
-    private void GoToTickets() => NavigationManager.NavigateTo("/TicketView");
-    private void GoToTrains() => NavigationManager.NavigateTo("/Trains");
-    private void GoToPassengers() => NavigationManager.NavigateTo("/Passengers");
 }

@@ -1,7 +1,6 @@
 ﻿using GraphQL;
 using GraphQL.Client.Http;
 using GraphQL.Client.Serializer.Newtonsoft;
-using ModernHttpClient;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using PracticeGraphQLClient2.DataAccess.Model;
@@ -14,14 +13,15 @@ namespace PracticeGraphQLClient2.DataAccess
 
         static Query()
         {
-            var uri = new Uri("https://localhost:7153/graphql/");
+            var uri = new Uri("https://localhost:7038/graphql/");
             var graphQLOptions = new GraphQLHttpClientOptions
             {
-                EndPoint = uri,
-                HttpMessageHandler = new NativeMessageHandler(),
+                EndPoint = uri
             };
             graphQLHttpClient = new GraphQLHttpClient(graphQLOptions, new NewtonsoftJsonSerializer());
         }
+
+        // Универсальный метод для получения списка
         public static async Task<List<T>> ExecuteQueryListAsync<T>(string graphQLQueryType, string query, object? variables = null)
         {
             try
@@ -50,9 +50,11 @@ namespace PracticeGraphQLClient2.DataAccess
             catch (Exception ex)
             {
                 Console.WriteLine($"Ошибка в ExecuteQueryListAsync: {ex.Message}");
-                throw;
+                return new List<T>();
             }
         }
+
+        // Универсальный метод для получения одного объекта
         public static async Task<T> ExecuteQueryAsync<T>(string graphQLQueryType, string query, object? variables = null)
         {
             try
@@ -84,6 +86,8 @@ namespace PracticeGraphQLClient2.DataAccess
                 throw;
             }
         }
+
+        // Метод для получения decimal (для выручки)
         public static async Task<decimal> ExecuteQueryDecimalAsync(string graphQLQueryType, string query, object? variables = null)
         {
             try
@@ -112,14 +116,16 @@ namespace PracticeGraphQLClient2.DataAccess
             catch (Exception ex)
             {
                 Console.WriteLine($"Ошибка в ExecuteQueryDecimalAsync: {ex.Message}");
-                throw;
+                return 0;
             }
         }
+
+        // === TICKETS ===
         public static async Task<List<Ticket>> GetAllTickets()
         {
             string query = @"
                 query {
-                    All {
+                    all {
                         ticketId
                         price
                         isSold
@@ -142,14 +148,14 @@ namespace PracticeGraphQLClient2.DataAccess
                         }
                     }
                 }";
-            return await ExecuteQueryListAsync<Ticket>("All", query);
+            return await ExecuteQueryListAsync<Ticket>("all", query);
         }
 
         public static async Task<Ticket> GetTicketById(int ticketId)
         {
             string query = @"
                 query GetTicketById($id: Int!) {
-                    TicketById(id: $id) {
+                    ticketById(id: $id) {
                         ticketId
                         price
                         isSold
@@ -176,14 +182,14 @@ namespace PracticeGraphQLClient2.DataAccess
                     }
                 }";
             var variables = new { id = ticketId };
-            return await ExecuteQueryAsync<Ticket>("TicketById", query, variables);
+            return await ExecuteQueryAsync<Ticket>("ticketById", query, variables);
         }
 
         public static async Task<List<Ticket>> GetSoldTicketsByPeriod(DateTime startDate, DateTime endDate)
         {
             string query = @"
                 query GetSoldTicketsByPeriod($startDate: DateTime!, $endDate: DateTime!) {
-                    SoldTicketsByPeriod(startDate: $startDate, endDate: $endDate) {
+                    soldTicketsByPeriod(startDate: $startDate, endDate: $endDate) {
                         ticketId
                         price
                         isSold
@@ -193,25 +199,33 @@ namespace PracticeGraphQLClient2.DataAccess
                         passengerId
                     }
                 }";
-            var variables = new { startDate = startDate.ToString("yyyy-MM-ddTHH:mm:ss"), endDate = endDate.ToString("yyyy-MM-ddTHH:mm:ss") };
-            return await ExecuteQueryListAsync<Ticket>("SoldTicketsByPeriod", query, variables);
+            var variables = new
+            {
+                startDate = startDate.ToString("yyyy-MM-ddTHH:mm:ss"),
+                endDate = endDate.ToString("yyyy-MM-ddTHH:mm:ss")
+            };
+            return await ExecuteQueryListAsync<Ticket>("soldTicketsByPeriod", query, variables);
         }
 
         public static async Task<decimal> GetTotalSoldTicketsRevenue(DateTime startDate, DateTime endDate)
         {
             string query = @"
                 query GetTotalSoldTicketsRevenue($startDate: DateTime!, $endDate: DateTime!) {
-                    TotalSoldTicketsRevenue(startDate: $startDate, endDate: $endDate)
+                    totalSoldTicketsRevenue(startDate: $startDate, endDate: $endDate)
                 }";
-            var variables = new { startDate = startDate.ToString("yyyy-MM-ddTHH:mm:ss"), endDate = endDate.ToString("yyyy-MM-ddTHH:mm:ss") };
-            return await ExecuteQueryDecimalAsync("TotalSoldTicketsRevenue", query, variables);
+            var variables = new
+            {
+                startDate = startDate.ToString("yyyy-MM-ddTHH:mm:ss"),
+                endDate = endDate.ToString("yyyy-MM-ddTHH:mm:ss")
+            };
+            return await ExecuteQueryDecimalAsync("totalSoldTicketsRevenue", query, variables);
         }
 
         public static async Task<List<Ticket>> GetTicketsByPassenger(int passengerId)
         {
             string query = @"
                 query GetTicketsByPassenger($passengerId: Int!) {
-                    TicketsByPassenger(passengerId: $passengerId) {
+                    ticketsByPassenger(passengerId: $passengerId) {
                         ticketId
                         price
                         isSold
@@ -225,14 +239,14 @@ namespace PracticeGraphQLClient2.DataAccess
                     }
                 }";
             var variables = new { passengerId };
-            return await ExecuteQueryListAsync<Ticket>("TicketsByPassenger", query, variables);
+            return await ExecuteQueryListAsync<Ticket>("ticketsByPassenger", query, variables);
         }
 
         public static async Task<List<Ticket>> GetTicketsByTrain(int trainId)
         {
             string query = @"
                 query GetTicketsByTrain($trainId: Int!) {
-                    TicketsByTrain(trainId: $trainId) {
+                    ticketsByTrain(trainId: $trainId) {
                         ticketId
                         price
                         isSold
@@ -246,13 +260,15 @@ namespace PracticeGraphQLClient2.DataAccess
                     }
                 }";
             var variables = new { trainId };
-            return await ExecuteQueryListAsync<Ticket>("TicketsByTrain", query, variables);
+            return await ExecuteQueryListAsync<Ticket>("ticketsByTrain", query, variables);
         }
+
+        // === TRAINS ===
         public static async Task<List<Train>> GetAllTrains()
         {
             string query = @"
                 query {
-                    AllTrains {
+                    allTrains {
                         trainId
                         trainName
                         trainNumber
@@ -265,14 +281,14 @@ namespace PracticeGraphQLClient2.DataAccess
                         }
                     }
                 }";
-            return await ExecuteQueryListAsync<Train>("AllTrains", query);
+            return await ExecuteQueryListAsync<Train>("allTrains", query);
         }
 
         public static async Task<Train> GetTrainById(int trainId)
         {
             string query = @"
                 query GetTrainById($trainId: Int!) {
-                    TrainById(trainId: $trainId) {
+                    trainById(trainId: $trainId) {
                         trainId
                         trainName
                         trainNumber
@@ -291,14 +307,14 @@ namespace PracticeGraphQLClient2.DataAccess
                     }
                 }";
             var variables = new { trainId };
-            return await ExecuteQueryAsync<Train>("TrainById", query, variables);
+            return await ExecuteQueryAsync<Train>("trainById", query, variables);
         }
 
         public static async Task<List<Seat>> GetAvailableSeats(int trainId)
         {
             string query = @"
                 query GetAvailableSeats($trainId: Int!) {
-                    AvailableSeats(trainId: $trainId) {
+                    availableSeats(trainId: $trainId) {
                         seatId
                         number
                         isBooked
@@ -310,14 +326,14 @@ namespace PracticeGraphQLClient2.DataAccess
                     }
                 }";
             var variables = new { trainId };
-            return await ExecuteQueryListAsync<Seat>("AvailableSeats", query, variables);
+            return await ExecuteQueryListAsync<Seat>("availableSeats", query, variables);
         }
 
         public static async Task<List<Seat>> GetAvailableSeatsByPriceRange(int trainId, decimal minPrice, decimal maxPrice)
         {
             string query = @"
                 query GetAvailableSeatsByPriceRange($trainId: Int!, $minPrice: Decimal!, $maxPrice: Decimal!) {
-                    AvailableSeatsByPriceRange(trainId: $trainId, minPrice: $minPrice, maxPrice: $maxPrice) {
+                    availableSeatsByPriceRange(trainId: $trainId, minPrice: $minPrice, maxPrice: $maxPrice) {
                         seatId
                         number
                         isBooked
@@ -330,33 +346,35 @@ namespace PracticeGraphQLClient2.DataAccess
                     }
                 }";
             var variables = new { trainId, minPrice, maxPrice };
-            return await ExecuteQueryListAsync<Seat>("AvailableSeatsByPriceRange", query, variables);
+            return await ExecuteQueryListAsync<Seat>("availableSeatsByPriceRange", query, variables);
         }
 
         public static async Task<decimal> GetTotalSoldTicketsPriceForTrain(int trainId)
         {
             string query = @"
                 query GetTotalSoldTicketsPriceForTrain($trainId: Int!) {
-                    TotalSoldTicketsPriceForTrain(trainId: $trainId)
+                    totalSoldTicketsPriceForTrain(trainId: $trainId)
                 }";
             var variables = new { trainId };
-            return await ExecuteQueryDecimalAsync("TotalSoldTicketsPriceForTrain", query, variables);
+            return await ExecuteQueryDecimalAsync("totalSoldTicketsPriceForTrain", query, variables);
         }
 
         public static async Task<decimal> GetTotalUnsoldTicketsPriceForTrain(int trainId)
         {
             string query = @"
                 query GetTotalUnsoldTicketsPriceForTrain($trainId: Int!) {
-                    TotalUnsoldTicketsPriceForTrain(trainId: $trainId)
+                    totalUnsoldTicketsPriceForTrain(trainId: $trainId)
                 }";
             var variables = new { trainId };
-            return await ExecuteQueryDecimalAsync("TotalUnsoldTicketsPriceForTrain", query, variables);
+            return await ExecuteQueryDecimalAsync("totalUnsoldTicketsPriceForTrain", query, variables);
         }
+
+        // === PASSENGERS ===
         public static async Task<List<Passenger>> GetAllPassengers()
         {
             string query = @"
                 query {
-                    All {
+                    all {
                         passengerId
                         firstName
                         lastName
@@ -367,14 +385,14 @@ namespace PracticeGraphQLClient2.DataAccess
                         address
                     }
                 }";
-            return await ExecuteQueryListAsync<Passenger>("All", query);
+            return await ExecuteQueryListAsync<Passenger>("all", query);
         }
 
         public static async Task<Passenger> GetPassengerById(int passengerId)
         {
             string query = @"
                 query GetPassengerById($id: Int!) {
-                    PassengerById(id: $id) {
+                    passengerById(id: $id) {
                         passengerId
                         firstName
                         lastName
@@ -383,26 +401,17 @@ namespace PracticeGraphQLClient2.DataAccess
                         phone
                         age
                         address
-                        tickets {
-                            ticketId
-                            price
-                            dataProdaji
-                            train {
-                                trainName
-                                trainNumber
-                            }
-                        }
                     }
                 }";
             var variables = new { id = passengerId };
-            return await ExecuteQueryAsync<Passenger>("PassengerById", query, variables);
+            return await ExecuteQueryAsync<Passenger>("passengerById", query, variables);
         }
 
         public static async Task<List<PassengerMovement>> GetPassengerMovements(int passengerId)
         {
             string query = @"
                 query GetPassengerMovements($passengerId: Int!) {
-                    PassengerMovement(passengerId: $passengerId) {
+                    passengerMovement(passengerId: $passengerId) {
                         ticketId
                         trainName
                         trainNumber
@@ -415,14 +424,14 @@ namespace PracticeGraphQLClient2.DataAccess
                     }
                 }";
             var variables = new { passengerId };
-            return await ExecuteQueryListAsync<PassengerMovement>("PassengerMovement", query, variables);
+            return await ExecuteQueryListAsync<PassengerMovement>("passengerMovement", query, variables);
         }
 
         public static async Task<List<Passenger>> GetPassengersByTrain(int trainId)
         {
             string query = @"
                 query GetPassengersByTrain($trainId: Int!) {
-                    PassengersByTrain(trainId: $trainId) {
+                    passengersByTrain(trainId: $trainId) {
                         passengerId
                         firstName
                         lastName
@@ -430,14 +439,14 @@ namespace PracticeGraphQLClient2.DataAccess
                     }
                 }";
             var variables = new { trainId };
-            return await ExecuteQueryListAsync<Passenger>("PassengersByTrain", query, variables);
+            return await ExecuteQueryListAsync<Passenger>("passengersByTrain", query, variables);
         }
 
         public static async Task<Passenger> GetPassengerBySeat(int trainId, int carriageNumber, int seatNumber)
         {
             string query = @"
                 query GetPassengerBySeat($trainId: Int!, $carriageNumber: Int!, $seatNumber: Int!) {
-                    PassengerBySeat(trainId: $trainId, carriageNumber: $carriageNumber, seatNumber: $seatNumber) {
+                    passengerBySeat(trainId: $trainId, carriageNumber: $carriageNumber, seatNumber: $seatNumber) {
                         passengerId
                         firstName
                         lastName
@@ -446,13 +455,30 @@ namespace PracticeGraphQLClient2.DataAccess
                     }
                 }";
             var variables = new { trainId, carriageNumber, seatNumber };
-            return await ExecuteQueryAsync<Passenger>("PassengerBySeat", query, variables);
+            return await ExecuteQueryAsync<Passenger>("passengerBySeat", query, variables);
         }
+
+        public static async Task<List<Passenger>> GetPassengersByCarriage(int trainId, int carriageNumber)
+        {
+            string query = @"
+                query GetPassengersByCarriage($trainId: Int!, $carriageNumber: Int!) {
+                    passengersByCarriage(trainId: $trainId, carriageNumber: $carriageNumber) {
+                        passengerId
+                        firstName
+                        lastName
+                        surName
+                    }
+                }";
+            var variables = new { trainId, carriageNumber };
+            return await ExecuteQueryListAsync<Passenger>("passengersByCarriage", query, variables);
+        }
+
+        // === CARRIAGES ===
         public static async Task<Carriage> GetCarriageById(int carriageId)
         {
             string query = @"
                 query GetCarriageById($id: Int!) {
-                    CarriageById(id: $id) {
+                    carriageById(id: $id) {
                         carriageId
                         number
                         trainId
@@ -468,14 +494,14 @@ namespace PracticeGraphQLClient2.DataAccess
                     }
                 }";
             var variables = new { id = carriageId };
-            return await ExecuteQueryAsync<Carriage>("CarriageById", query, variables);
+            return await ExecuteQueryAsync<Carriage>("carriageById", query, variables);
         }
 
         public static async Task<List<Carriage>> GetCarriagesByTrain(int trainId)
         {
             string query = @"
                 query GetCarriagesByTrain($trainId: Int!) {
-                    CarriagesByTrain(trainId: $trainId) {
+                    carriagesByTrain(trainId: $trainId) {
                         carriageId
                         number
                         seats {
@@ -486,27 +512,29 @@ namespace PracticeGraphQLClient2.DataAccess
                     }
                 }";
             var variables = new { trainId };
-            return await ExecuteQueryListAsync<Carriage>("CarriagesByTrain", query, variables);
+            return await ExecuteQueryListAsync<Carriage>("carriagesByTrain", query, variables);
         }
 
         public static async Task<List<Seat>> GetAvailableSeatsInCarriage(int carriageId)
         {
             string query = @"
                 query GetAvailableSeatsInCarriage($carriageId: Int!) {
-                    AvailableSeatsInCarriage(carriageId: $carriageId) {
+                    availableSeatsInCarriage(carriageId: $carriageId) {
                         seatId
                         number
                         isBooked
                     }
                 }";
             var variables = new { carriageId };
-            return await ExecuteQueryListAsync<Seat>("AvailableSeatsInCarriage", query, variables);
+            return await ExecuteQueryListAsync<Seat>("availableSeatsInCarriage", query, variables);
         }
+
+        // === SEATS ===
         public static async Task<Seat> GetSeatById(int seatId)
         {
             string query = @"
                 query GetSeatById($id: Int!) {
-                    SeatById(id: $id) {
+                    seatById(id: $id) {
                         seatId
                         number
                         isBooked
@@ -522,28 +550,28 @@ namespace PracticeGraphQLClient2.DataAccess
                     }
                 }";
             var variables = new { id = seatId };
-            return await ExecuteQueryAsync<Seat>("SeatById", query, variables);
+            return await ExecuteQueryAsync<Seat>("seatById", query, variables);
         }
 
         public static async Task<List<Seat>> GetSeatsByCarriage(int carriageId)
         {
             string query = @"
                 query GetSeatsByCarriage($carriageId: Int!) {
-                    SeatsByCarriage(carriageId: $carriageId) {
+                    seatsByCarriage(carriageId: $carriageId) {
                         seatId
                         number
                         isBooked
                     }
                 }";
             var variables = new { carriageId };
-            return await ExecuteQueryListAsync<Seat>("SeatsByCarriage", query, variables);
+            return await ExecuteQueryListAsync<Seat>("seatsByCarriage", query, variables);
         }
 
         public static async Task<List<Seat>> GetBookedSeatsByTrain(int trainId)
         {
             string query = @"
                 query GetBookedSeatsByTrain($trainId: Int!) {
-                    BookedSeatsByTrain(trainId: $trainId) {
+                    bookedSeatsByTrain(trainId: $trainId) {
                         seatId
                         number
                         isBooked
@@ -555,7 +583,7 @@ namespace PracticeGraphQLClient2.DataAccess
                     }
                 }";
             var variables = new { trainId };
-            return await ExecuteQueryListAsync<Seat>("BookedSeatsByTrain", query, variables);
+            return await ExecuteQueryListAsync<Seat>("bookedSeatsByTrain", query, variables);
         }
     }
 }

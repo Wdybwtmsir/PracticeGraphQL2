@@ -1,7 +1,6 @@
 ﻿using GraphQL;
 using GraphQL.Client.Http;
 using GraphQL.Client.Serializer.Newtonsoft;
-using ModernHttpClient;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using PracticeGraphQLClient2.DataAccess.Model;
@@ -14,11 +13,10 @@ namespace PracticeGraphQLClient2.DataAccess
 
         static Mutation()
         {
-            var uri = new Uri("https://localhost:7153/graphql/");
+            var uri = new Uri("https://localhost:7038/graphql/");
             var graphQLOptions = new GraphQLHttpClientOptions
             {
-                EndPoint = uri,
-                HttpMessageHandler = new NativeMessageHandler(),
+                EndPoint = uri
             };
             graphQLHttpClient = new GraphQLHttpClient(graphQLOptions, new NewtonsoftJsonSerializer());
         }
@@ -54,7 +52,13 @@ namespace PracticeGraphQLClient2.DataAccess
                 throw;
             }
         }
-        public static async Task<Ticket> CreateTicketWithPassengerId(decimal price, bool isSold, DateTime dataProdaji, string sellerName, int trainId, int passengerId)
+        public static async Task<Ticket> CreateTicketWithPassengerId(
+            decimal price,
+            bool isSold,
+            DateTime dataProdaji,
+            string sellerName,
+            int trainId,
+            int passengerId)
         {
             string mutation = @"
                 mutation CreateTicketWithPassengerId($price: Decimal!, $isSold: Boolean!, $dataProdaji: DateTime!, $sellerName: String!, $trainId: Int!, $passengerId: Int!) {
@@ -82,7 +86,14 @@ namespace PracticeGraphQLClient2.DataAccess
             return await ExecuteMutationAsync<Ticket>("createTicketWithPassengerId", mutation, variables);
         }
 
-        public static async Task<Ticket> EditTicketWithId(int id, decimal price, bool isSold, DateTime dataProdaji, string sellerName, int trainId, int passengerId)
+        public static async Task<Ticket> EditTicketWithId(
+            int id,
+            decimal price,
+            bool isSold,
+            DateTime dataProdaji,
+            string sellerName,
+            int trainId,
+            int passengerId)
         {
             string mutation = @"
                 mutation EditTicketWithId($id: Int!, $price: Decimal!, $isSold: Boolean!, $dataProdaji: DateTime!, $sellerName: String!, $trainId: Int!, $passengerId: Int!) {

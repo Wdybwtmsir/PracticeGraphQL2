@@ -69,7 +69,8 @@
     {
         try
         {
-            await Mutation.CreateTicketWithPassengerId(
+            // ВАЖНО: имя метода должно совпадать с API (с маленькой буквы)
+            var result = await Mutation.CreateTicketWithPassengerId(
                 newTicket.Price,
                 newTicket.IsSold,
                 newTicket.DataProdaji,
@@ -77,11 +78,15 @@
                 newTicket.TrainId,
                 newTicket.PassengerId ?? 0
             );
+
+            // Если дошли сюда - билет создан
+            Console.WriteLine($"Билет создан! ID: {result.TicketId}");
             NavigationManager.NavigateTo("/TicketView");
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Ошибка: {ex.Message}");
+            // Добавь сюда alert или уведомление для пользователя
         }
     }
 

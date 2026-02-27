@@ -23,7 +23,7 @@
 {
     <h5>Найдено билетов: @tickets.Count</h5>
     <h6>Общая выручка: @totalRevenue.ToString("C")</h6>
-    
+
     <table class="table">
         <thead>
             <tr>
@@ -46,16 +46,35 @@
         </tbody>
     </table>
 }
+else if (searched)
+{
+    <div class="alert alert-info">
+        Нет билетов за выбранный период
+    </div>
+}
 
 @code {
     private DateTime startDate = DateTime.Now.AddDays(-30);
     private DateTime endDate = DateTime.Now;
     private List<Ticket> tickets = new();
     private decimal totalRevenue;
+    private bool searched = false;
 
     private async Task LoadTickets()
     {
-        tickets = await Query.GetSoldTicketsByPeriod(startDate, endDate);
-        totalRevenue = await Query.GetTotalSoldTicketsRevenue(startDate, endDate);
+        try
+        {
+            searched = true;
+
+         
+            tickets = await Query.GetSoldTicketsByPeriod(startDate, endDate);
+            totalRevenue = await Query.GetTotalSoldTicketsRevenue(startDate, endDate);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка: {ex.Message}");
+         
+            tickets = new();
+        }
     }
 }

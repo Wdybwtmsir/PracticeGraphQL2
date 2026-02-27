@@ -1,44 +1,64 @@
-﻿@page "/TrainDetails/{id:int}"
+﻿@page "/Trains"
 @using PracticeGraphQLClient2.DataAccess
 @using PracticeGraphQLClient2.DataAccess.Model
 @inject NavigationManager NavigationManager
 
-<h3>Детали поезда</h3>
+<h3 class="mb-3">🚂 Список поездов</h3>
 
-<p>ID поезда: @Id</p>
-
-@if (train != null)
+@if (isLoading)
 {
-    <div>
-        <p>Название: @train.TrainName</p>
-        <p>Номер: @train.TrainNumber</p>
-        <p>Маршрут: @train.TrainRoute</p>
+    <div class="text-center my-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Загрузка...</span>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row">
+        @foreach (var train in trains)
+        {
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-header bg-primary text-white">
+                        <h5>@train.TrainName</h5>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Номер:</strong> @train.TrainNumber</p>
+                        <p><strong>Маршрут:</strong> @train.TrainRoute</p>
+                        <p><strong>Отправление:</strong> @train.TrainStanciyaOtpravlenya</p>
+                        <p><strong>Прибытие:</strong> @train.TrainStanciyaPribitiya</p>
+                    </div>
+                    <div class="card-footer">
+                        <button class="btn btn-sm btn-info" @onclick="() => GoToDetails(train.TrainId)">
+                            Подробнее
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
     </div>
 }
 
-<button class="btn btn-secondary" @onclick="GoBack">
-    Назад
-</button>
-
 @code {
-    [Parameter] public int Id { get; set; }
-
-    private Train? train;
+    private List<Train> trains = new();
+    private bool isLoading = true;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            train = await Query.GetTrainById(Id);
+            isLoading = true;
+            trains = await Query.GetAllTrains();
         }
-        catch (Exception ex)
+        finally
         {
-            Console.WriteLine(ex.Message);
+            isLoading = false;
         }
     }
 
-    private void GoBack()
+    private void GoToDetails(int id)
     {
-        NavigationManager.NavigateTo("/Trains");
+        NavigationManager.NavigateTo("/TrainDetails/" + id);
     }
 }
